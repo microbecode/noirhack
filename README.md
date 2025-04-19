@@ -30,7 +30,7 @@ We also need to install a tool for spawning local Starknet chain:
 make install-devnet
 ```
 
-Finally we need to install Garaga, make sure you have Python 3.10 in your system:
+Finally we need to install Garaga. Make sure you have Python 3.10 in your system. You may also need to start a separate Python virtual environment for this to work. You can do that with `python3.10 -m venv garaga-venv && source garaga-venv/bin/activate`. Then install with:
 
 ```sh
 make install-garaga
@@ -80,7 +80,7 @@ Let's start our local development network in other terminal instance:
 make devnet
 ```
 
-Initialize the account we will be using for deployment:
+You now need to start a new terminal window. Initialize the account we will be using for deployment:
 
 ```sh
 make accounts-file
@@ -89,26 +89,27 @@ make accounts-file
 First we need to declare out contract ("upload" contract code):
 
 ```sh
-make declare-contract
+make declare-verifier
 ```
 
 Now we can instantiate the contract class we obtained (you might need to update the command in Makefile):
 
 ```sh
-make deploy-contract
+make deploy-verifier
 ```
 
-Great! Now let's copy necessary artifacts and update contract address in the app code (change App.tsx):
+Great! Now let's copy necessary artifacts:
 
 ```sh
 make artifacts
 ```
 
-Finally we can run the app:
-
-```sh
-make run-app
-```
+Prepare the app and its requirements so you can run it. Go to the `app` folder and:
+1. Update the contract address in the app code (change App.tsx). 
+1. Make sure you have `tsc` installed. If not, you can install it with `bun add -d typescript@next`.
+1. Install vite with `npm install -D vite`
+1. Build the app with `bun run build`
+1. Finally we can run the app: `bun run dev`
 
 ## Useful links
 
