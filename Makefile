@@ -14,13 +14,16 @@ install-starknet:
 
 install-devnet:
 	asdf plugin add starknet-devnet
-	asdf install starknet-devnet 0.3.0
+	asdf install starknet-devnet 0.4.0
 
 install-garaga:
 	pip install garaga==0.17.0
 
 devnet:
 	starknet-devnet --accounts=2 --seed=0 --initial-balance=100000000000000000000000
+
+fork:
+	starknet-devnet --fork-network https://free-rpc.nethermind.io/sepolia-juno/v0_8 --fork-block 709587
 
 accounts-file:
 	curl -s http://localhost:5050/predeployed_accounts | jq '{"alpha-sepolia": {"devnet0": {address: .[0].address, private_key: .[0].private_key, public_key: .[0].public_key, class_hash: "0xe2eb8f5672af4e6a4e8a8f1b44989685e668489b0a25437733756c5a34a1d6", deployed: true, legacy: false, salt: "0x14", type: "open_zeppelin"}}}' > ./contracts/accounts.json
@@ -44,11 +47,11 @@ build-verifier:
 	cd contracts/verifier && scarb build
 
 declare-verifier:
-	cd contracts && sncast declare --contract-name UltraKeccakHonkVerifier
+	cd contracts && sncast --accounts-file accounts.json --account devnet0 declare --contract-name UltraKeccakHonkVerifier --url http://localhost:5050 --package verifier
 
 deploy-verifier:
 	# TODO: use class hash from the result of the `make declare-verifier` step
-	cd contracts && sncast deploy --class-hash 0x0424716f07755df45e1988daec1266fe752946785cc8824d2c00e0eb070d551d
+	cd contracts && sncast --accounts-file accounts.json --account devnet0 deploy --class-hash 0x00bb20462f9741231dca2052a0d4b15d1c7c91b3ba0df91cb264e4f9fd5e80cc --url http://localhost:5050
 
 artifacts:
 	cp ./circuit/target/circuit.json ./app/src/assets/circuit.json

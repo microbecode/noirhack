@@ -4,25 +4,30 @@ import { ProofState, ProofStateData } from './types'
 import { Noir } from "@noir-lang/noir_js";
 import { UltraHonkBackend } from "@aztec/bb.js";
 import { flattenFieldsAsArray } from "./helpers/proof";
-import { getHonkCallData, init } from 'garaga';
+import { getHonkCallData, init, poseidonHashBN254 } from 'garaga';
 import { bytecode, abi } from "./assets/circuit.json";
+import { abi as mainAbi } from "./assets/main.json";
 import { abi as verifierAbi } from "./assets/verifier.json";
 import vkUrl from './assets/vk.bin?url';
-import { RpcProvider, Contract } from 'starknet';
+import { RpcProvider, Contract, WalletAccount } from 'starknet';
+import { connect } from "@starknet-io/get-starknet"
 import initNoirC from "@noir-lang/noirc_abi";
 import initACVM from "@noir-lang/acvm_js";
 import acvm from "@noir-lang/acvm_js/web/acvm_js_bg.wasm?url";
 import noirc from "@noir-lang/noirc_abi/web/noirc_abi_wasm_bg.wasm?url";
+
+const CONTRACT_ADDRESS = "0x00dae5cc944c2981eb28b7f1f2ed8c3978e5d8a4e1719a35c36f0f22e10c56da";
+const PROVIDER_URL = "http://localhost:5050/rpc"; // https://free-rpc.nethermind.io/sepolia-juno/v0_8
 
 function App() {
   const [proofState, setProofState] = useState<ProofStateData>({
     state: ProofState.Initial
   });
   const [vk, setVk] = useState<Uint8Array | null>(null);
-  const [inputX, setInputX] = useState<number>(5);
-  const [inputY, setInputY] = useState<number>(10);
   // Use a ref to reliably track the current state across asynchronous operations
   const currentStateRef = useRef<ProofState>(ProofState.Initial);
+  const [secretKey, setSecretKey] = useState<number>(5);
+  const [inputValue, setInputValue] = useState<number>(10);
 
   // Initialize WASM on component mount
   useEffect(() => {
@@ -93,13 +98,27 @@ function App() {
       // Start the process
       updateState(ProofState.GeneratingWitness);
       
+      await init();
+
       // Use input values from state
-      const input = { x: inputX, y: inputY };
+/*       const inputs = {
+        secret_key: secretKey,
+        input: inputValue,
+        public_key: poseidonHashBN254(BigInt(secretKey), BigInt(secretKey)).toString(),
+        nullifier: poseidonHashBN254(BigInt(secretKey), BigInt(inputValue)).toString()
+      };
+
+      // Generate witness
+      let noir = new Noir({ bytecode, abi: abi as any });
+      let execResult = await noir.execute(inputs); */
+
+      const input = { x: secretKey, y: inputValue };
       
       // Generate witness
       let noir = new Noir({ bytecode, abi: abi as any });
       let execResult = await noir.execute(input);
-      console.log(execResult);
+
+      console.log("exec result", execResult);
       
       // Generate proof
       updateState(ProofState.GeneratingProof);
@@ -112,7 +131,7 @@ function App() {
       // Prepare calldata
       updateState(ProofState.PreparingCalldata);
 
-      await init();
+      await init(); // only in simple
       const callData = getHonkCallData(
         proof.proof,
         flattenFieldsAsArray(proof.publicInputs),
@@ -124,16 +143,29 @@ function App() {
       // Connect wallet
       updateState(ProofState.ConnectingWallet);
 
+      const provider = new RpcProvider({ nodeUrl: PROVIDER_URL })
+
+/*       const selectedWalletSWO = await connect();
+      if (!selectedWalletSWO) {
+        throw new Error('No wallet connected');
+      }
+      const myWalletAccount = await WalletAccount.connect(
+        provider,
+        selectedWalletSWO
+      );
+      console.log(myWalletAccount); 
       // Send transaction
       updateState(ProofState.SendingTransaction);
 
-      const provider = new RpcProvider({ nodeUrl: 'http://127.0.0.1:5050/rpc' });
-      // TODO: use conract address from the result of the `make deploy-verifier` step
-      const contractAddress = '0x0571403cd12c79c3563eddff3f50cdf4ae10f8f31dc4756545a1812171da53a0';
-      const verifierContract = new Contract(verifierAbi, contractAddress, provider);
-      
+      const contractAddress = CONTRACT_ADDRESS;
+      const mainContract = new Contract(mainAbi, contractAddress, myWalletAccount);*/
+      const mainContract = new Contract(verifierAbi, CONTRACT_ADDRESS, provider);
+      console.log("before ver");
       // Check verification
-      const res = await verifierContract.verify_ultra_keccak_honk_proof(callData.slice(1));
+      const res = await mainContract.verify_ultra_keccak_honk_proof(callData.slice(1));
+      console.log(res);
+/*       const res = await mainContract.add_solution(callData); // keep the number of elements to pass to the verifier library call
+      await provider.waitForTransaction(res.transaction_hash); */
       console.log(res);
 
       updateState(ProofState.ProofVerified);
@@ -187,28 +219,29 @@ function App() {
       <div className="state-machine">
         <div className="input-section">
           <div className="input-group">
-            <label htmlFor="input-x">X:</label>
+            <label htmlFor="secret-key">Secret Key:</label>
             <input 
-              id="input-x"
+              id="secret-key"
               type="text" 
-              value={inputX} 
-              onChange={(e) => {
-                const value = parseInt(e.target.value);
-                setInputX(isNaN(value) ? 0 : value);
-              }} 
+              value={secretKey} 
+              onChange={(e) => setSecretKey(parseInt(e.target.value) || 0)} 
+              min="0"
               disabled={proofState.state !== ProofState.Initial}
             />
           </div>
           <div className="input-group">
-            <label htmlFor="input-y">Y:</label>
+            <label htmlFor="input-value">Input:</label>
             <input 
-              id="input-y"
+              id="input-value"
               type="text" 
-              value={inputY} 
+              value={inputValue} 
+              onChange={(e) => setInputValue(parseInt(e.target.value) || 0)} 
+              min="0"
+/*               value={inputY} 
               onChange={(e) => {
                 const value = parseInt(e.target.value);
                 setInputY(isNaN(value) ? 0 : value);
-              }} 
+              }}  */
               disabled={proofState.state !== ProofState.Initial}
             />
           </div>
