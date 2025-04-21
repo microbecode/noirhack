@@ -9,10 +9,7 @@ mod MainContract {
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map,
     };
     use starknet::{syscalls, SyscallResultTrait};
-
-    // TODO: use class hash from the result of the `make declare-verifier` step
-    const VERIFIER_CLASSHASH: felt252 = 0x00bb20462f9741231dca2052a0d4b15d1c7c91b3ba0df91cb264e4f9fd5e80cc;
-
+    
     #[storage]
     struct Storage {
         // Don't do that for a real use case, use merkle tree instead
@@ -29,7 +26,7 @@ mod MainContract {
     #[abi(embed_v0)]
     impl IMainContractImpl of super::IMainContract<ContractState> {
         fn allow_transfer(ref self: ContractState, full_proof_with_hints: Span<felt252>) {
-            let mut res = syscalls::library_call_syscall(
+            let mut _res = syscalls::library_call_syscall(
                 self.verifier_classhash.read().try_into().unwrap(),
                 selector!("verify_ultra_keccak_honk_proof"),
                 full_proof_with_hints

@@ -16,7 +16,7 @@ import initACVM from "@noir-lang/acvm_js";
 import acvm from "@noir-lang/acvm_js/web/acvm_js_bg.wasm?url";
 import noirc from "@noir-lang/noirc_abi/web/noirc_abi_wasm_bg.wasm?url";
 
-const CONTRACT_ADDRESS = "0x00dae5cc944c2981eb28b7f1f2ed8c3978e5d8a4e1719a35c36f0f22e10c56da";
+const CONTRACT_ADDRESS = "0x030b8c2fa1419b39e97b40b887731b0413624c9057f44d142c5f2bfc66e0991a";
 const PROVIDER_URL = "http://localhost:5050/rpc"; // https://free-rpc.nethermind.io/sepolia-juno/v0_8
 
 function App() {
@@ -158,14 +158,14 @@ function App() {
       updateState(ProofState.SendingTransaction);
 
       const contractAddress = CONTRACT_ADDRESS;
-      const mainContract = new Contract(mainAbi, contractAddress, myWalletAccount);*/
-      const mainContract = new Contract(verifierAbi, CONTRACT_ADDRESS, provider);
+      const verifierContract = new Contract(verifierAbi, contractAddress, myWalletAccount);*/
+      const mainContract = new Contract(mainAbi, CONTRACT_ADDRESS, provider);
       console.log("before ver");
       // Check verification
-      const res = await mainContract.verify_ultra_keccak_honk_proof(callData.slice(1));
-      console.log(res);
-/*       const res = await mainContract.add_solution(callData); // keep the number of elements to pass to the verifier library call
-      await provider.waitForTransaction(res.transaction_hash); */
+      /*const res = await mainContract.verify_ultra_keccak_honk_proof(callData.slice(1));
+      console.log(res);*/
+       const res = await mainContract.allow_transfer(callData); // keep the number of elements to pass to the verifier library call
+      await provider.waitForTransaction(res.transaction_hash); 
       console.log(res);
 
       updateState(ProofState.ProofVerified);
