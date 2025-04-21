@@ -1,6 +1,6 @@
 #[starknet::interface]
 trait IMainContract<TContractState> {
-    fn add_solution(ref self: TContractState, full_proof_with_hints: Span<felt252>);
+    fn allow_transfer(ref self: TContractState, full_proof_with_hints: Span<felt252>);
 }
 
 #[starknet::contract]
@@ -16,33 +16,34 @@ mod MainContract {
     #[storage]
     struct Storage {
         // Don't do that for a real use case, use merkle tree instead
-        nullifiers: Map<u256, bool>,
-        public_key: u256,
+        // nullifiers: Map<u256, bool>,
+        // public_key: u256,
+        verifier_classhash: felt252
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState, public_key: u256) {
-        self.public_key.write(public_key);
+    fn constructor(ref self: ContractState, verifier_classhash: felt252) {
+        self.verifier_classhash.write(verifier_classhash);
     }
 
     #[abi(embed_v0)]
     impl IMainContractImpl of super::IMainContract<ContractState> {
-        fn add_solution(ref self: ContractState, full_proof_with_hints: Span<felt252>) {
+        fn allow_transfer(ref self: ContractState, full_proof_with_hints: Span<felt252>) {
             let mut res = syscalls::library_call_syscall(
-                VERIFIER_CLASSHASH.try_into().unwrap(),
+                self.verifier_classhash.read().try_into().unwrap(),
                 selector!("verify_ultra_keccak_honk_proof"),
                 full_proof_with_hints
             )
                 .unwrap_syscall();
-            let public_inputs = Serde::<Option<Span<u256>>>::deserialize(ref res).unwrap().expect('Proof is invalid');
+            //let public_inputs = Serde::<Option<Span<u256>>>::deserialize(ref res).unwrap().expect('Proof is invalid');
 
-            let public_key = *public_inputs[0];
-            let nullifier = *public_inputs[1];
+            //let public_key = *public_inputs[0];
+            //let nullifier = *public_inputs[1];
 
-            assert(self.public_key.read() == public_key, 'Public key does not match');
-            assert(self.nullifiers.entry(nullifier).read() == false, 'Nullifier already used');
+            //assert(self.public_key.read() == public_key, 'Public key does not match');
+            //assert(self.nullifiers.entry(nullifier).read() == false, 'Nullifier already used');
 
-            self.nullifiers.entry(nullifier).write(true);
+            //self.nullifiers.entry(nullifier).write(true);
         }
     }
 }

@@ -40,6 +40,16 @@ prove-circuit:
 gen-vk:
 	bb write_vk --scheme ultra_honk --oracle_hash keccak -b ./circuit/target/circuit.json -o ./circuit/target
 
+start_venv:
+	python3.10 -m venv garaga-venv && source garaga-venv/bin/activate
+
+# Call when changes to the main contract
+redo-main:
+	gen-verifier
+	build-verifier
+	declare-verifier
+	declare-main
+
 gen-verifier:
 	cd contracts && garaga gen --system ultra_keccak_honk --vk ../circuit/target/vk --project-name verifier
 
@@ -51,7 +61,17 @@ declare-verifier:
 
 deploy-verifier:
 	# TODO: use class hash from the result of the `make declare-verifier` step
-	cd contracts && sncast --accounts-file accounts.json --account devnet0 deploy --class-hash 0x00bb20462f9741231dca2052a0d4b15d1c7c91b3ba0df91cb264e4f9fd5e80cc --url http://localhost:5050
+	cd contracts && sncast --accounts-file accounts.json --account devnet0 deploy --class-hash 0x040408b7c73092d7b26770ea4b72cf491234b94ccd9f4bd33545f5fd2f15b3e1 --url http://localhost:5050
+
+declare-main:
+	cd contracts && sncast --accounts-file accounts.json --account devnet0 declare --contract-name MainContract --url http://localhost:5050 --package main
+
+deploy-main:
+	# TODO: use class hash from the result of the `make declare-main` step
+	# use verifier address 
+	# NOTE: the public key is corresponding to the private key `1`
+	cd contracts && sncast --accounts-file accounts.json --account devnet0 deploy --class-hash 0x07558191690e776cc0a06f27ddbbe16d4c0a343e0fc099d79b99ecb61111a07a --arguments 0x06969178f91bf432595976dcebce470201ea36d500e31cd69348ce98124fc73e  --url http://localhost:5050
+
 
 artifacts:
 	cp ./circuit/target/circuit.json ./app/src/assets/circuit.json
