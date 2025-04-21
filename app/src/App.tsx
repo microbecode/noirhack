@@ -7,6 +7,7 @@ import { flattenFieldsAsArray } from "./helpers/proof";
 import { getHonkCallData, init, poseidonHashBN254 } from 'garaga';
 import { bytecode, abi } from "./assets/circuit.json";
 import { abi as mainAbi } from "./assets/main.json";
+import { abi as verifierAbi } from "./assets/verifier.json";
 import vkUrl from './assets/vk.bin?url';
 import { RpcProvider, Contract, WalletAccount } from 'starknet';
 import { connect } from "@starknet-io/get-starknet"
@@ -15,7 +16,7 @@ import initACVM from "@noir-lang/acvm_js";
 import acvm from "@noir-lang/acvm_js/web/acvm_js_bg.wasm?url";
 import noirc from "@noir-lang/noirc_abi/web/noirc_abi_wasm_bg.wasm?url";
 
-const CONTRACT_ADDRESS = "0x034f9bf19d8b529d0c8bda09ab470e88e6aa4220ec2ffc04622de60b6cf7aabb";
+const CONTRACT_ADDRESS = "0x00dae5cc944c2981eb28b7f1f2ed8c3978e5d8a4e1719a35c36f0f22e10c56da";
 const PROVIDER_URL = "http://localhost:5050/rpc"; // https://free-rpc.nethermind.io/sepolia-juno/v0_8
 
 function App() {
@@ -25,8 +26,8 @@ function App() {
   const [vk, setVk] = useState<Uint8Array | null>(null);
   // Use a ref to reliably track the current state across asynchronous operations
   const currentStateRef = useRef<ProofState>(ProofState.Initial);
-  const [secretKey, setSecretKey] = useState<number>(1);
-  const [inputValue, setInputValue] = useState<number>(9);
+  const [secretKey, setSecretKey] = useState<number>(5);
+  const [inputValue, setInputValue] = useState<number>(10);
 
   // Initialize WASM on component mount
   useEffect(() => {
@@ -100,7 +101,7 @@ function App() {
       await init();
 
       // Use input values from state
-      const inputs = {
+/*       const inputs = {
         secret_key: secretKey,
         input: inputValue,
         public_key: poseidonHashBN254(BigInt(secretKey), BigInt(secretKey)).toString(),
@@ -109,7 +110,14 @@ function App() {
 
       // Generate witness
       let noir = new Noir({ bytecode, abi: abi as any });
-      let execResult = await noir.execute(inputs);
+      let execResult = await noir.execute(inputs); */
+
+      const input = { x: secretKey, y: inputValue };
+      
+      // Generate witness
+      let noir = new Noir({ bytecode, abi: abi as any });
+      let execResult = await noir.execute(input);
+
       console.log("exec result", execResult);
       
       // Generate proof
@@ -123,6 +131,7 @@ function App() {
       // Prepare calldata
       updateState(ProofState.PreparingCalldata);
 
+      await init(); // only in simple
       const callData = getHonkCallData(
         proof.proof,
         flattenFieldsAsArray(proof.publicInputs),
@@ -150,11 +159,13 @@ function App() {
 
       const contractAddress = CONTRACT_ADDRESS;
       const mainContract = new Contract(mainAbi, contractAddress, myWalletAccount);*/
-      const mainContract = new Contract(mainAbi, CONTRACT_ADDRESS, provider);
-console.log("before ver");
+      const mainContract = new Contract(verifierAbi, CONTRACT_ADDRESS, provider);
+      console.log("before ver");
       // Check verification
-      const res = await mainContract.add_solution(callData); // keep the number of elements to pass to the verifier library call
-      await provider.waitForTransaction(res.transaction_hash);
+      const res = await mainContract.verify_ultra_keccak_honk_proof(callData.slice(1));
+      console.log(res);
+/*       const res = await mainContract.add_solution(callData); // keep the number of elements to pass to the verifier library call
+      await provider.waitForTransaction(res.transaction_hash); */
       console.log(res);
 
       updateState(ProofState.ProofVerified);
