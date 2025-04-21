@@ -1,15 +1,28 @@
+console.log("Loading testIssuance.ts module...");
 // testIssuance.ts
 // Simple script to test the SD-JWT VC issuance function.
 
-import { issueIdentityCredential } from './identityService';
+// Import only issueIdentityCredential now
+import { issueIdentityCredential } from './identityService.js';
 
 async function runTest() {
   console.log("--- Starting SD-JWT VC Issuance Test ---");
+  
+  // REMOVED: initializeIssuerKeys call is no longer needed
+  // console.log("Initializing issuer keys first...");
+  // console.log("Issuer keys initialized.");
+
+  const subjectDid = 'did:example:subject123';
+  const nationality = 'DE';
+  console.log(`Attempting to issue credential for Subject DID: ${subjectDid} with Nationality: ${nationality}`);
+
   try {
     // Example: Issue credential for did:example:subject123 with nationality 'DE'
-    const credential = await issueIdentityCredential('did:example:subject123', 'DE');
+    const credential = await issueIdentityCredential(subjectDid, nationality);
     
     if (credential) {
+      console.log("\nSuccessfully Issued SD-JWT VC:");
+      console.log(credential); // Log the actual credential string
       console.log("\n--- Issuance Test Successful ---");
       // Optionally, you could add basic parsing/validation here later
     } else {

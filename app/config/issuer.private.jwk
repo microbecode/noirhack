@@ -1,0 +1,8 @@
+{
+  "kty": "EC",
+  "x": "_Pzz_6rvG5CjMJ_KPBRXVqM7eCaxBLEoo2ZqjAhKoF8",
+  "y": "S5BezL2e752QjxMxPXNTEN_Bg28yW72-ycEfsehQxXM",
+  "crv": "P-256",
+  "d": "DvWGlMcs3K90nzVisIDiIDbzGAzj85P8sIBLG9iR3TY",
+  "kid": "did:web:gov.example#key-1"
+}

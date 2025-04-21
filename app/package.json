@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:script": "tsc -p tsconfig.build.json --listFiles && cp -r config dist/config",
+    "create-issuer": "node dist/scripts/createIssuer.js",
+    "start:test": "node dist/src/identity/testIssuance.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },

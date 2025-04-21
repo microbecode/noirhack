@@ -1,0 +1,26 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1"
+  ],
+  "id": "did:web:gov.example",
+  "verificationMethod": [
+    {
+      "id": "did:web:gov.example#key-1",
+      "type": "JsonWebKey2020",
+      "controller": "did:web:gov.example",
+      "publicKeyJwk": {
+        "kty": "EC",
+        "x": "_Pzz_6rvG5CjMJ_KPBRXVqM7eCaxBLEoo2ZqjAhKoF8",
+        "y": "S5BezL2e752QjxMxPXNTEN_Bg28yW72-ycEfsehQxXM",
+        "crv": "P-256",
+        "kid": "did:web:gov.example#key-1"
+      }
+    }
+  ],
+  "authentication": [
+    "did:web:gov.example#key-1"
+  ],
+  "assertionMethod": [
+    "did:web:gov.example#key-1"
+  ]
+}
