@@ -44,11 +44,11 @@ build-verifier:
 	cd contracts/verifier && scarb build
 
 declare-verifier:
-	cd contracts && sncast declare --contract-name UltraKeccakHonkVerifier
+	cd contracts && sncast --accounts-file accounts.json --account devnet0 declare --contract-name UltraKeccakHonkVerifier --url http://localhost:5050 --package verifier
 
 deploy-verifier:
 	# TODO: use class hash from the result of the `make declare-verifier` step
-	cd contracts && sncast deploy --class-hash 0x0424716f07755df45e1988daec1266fe752946785cc8824d2c00e0eb070d551d
+	cd contracts && sncast --accounts-file accounts.json --class-hash 0x00bb20462f9741231dca2052a0d4b15d1c7c91b3ba0df91cb264e4f9fd5e80cc --account devnet0 deploy --url http://localhost:5050
 
 artifacts:
 	cp ./circuit/target/circuit.json ./app/src/assets/circuit.json
