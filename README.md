@@ -108,6 +108,7 @@ Prepare the app and its requirements so you can run it. Go to the `app` folder a
 1. Update the contract address in the app code (change App.tsx). 
 1. Make sure you have `tsc` installed. If not, you can install it with `bun add -d typescript@next`.
 1. Install vite with `npm install -D vite`
+1. Install packages wit `npm i`
 1. Build the app with `bun run build`
 1. Finally we can run the app: `bun run dev`
 

@@ -3,7 +3,8 @@ import './App.css'
 import { ProofState, ProofStateData } from './types'
 import { Noir } from "@noir-lang/noir_js";
 import { UltraHonkBackend } from "@aztec/bb.js";
-import { flattenFieldsAsArray } from "./helpers/proimport { getHonkCallData, init, poseidonHashBN254 } from 'garaga';
+import { flattenFieldsAsArray } from "./helpers/proof";
+import { getHonkCallData, init, poseidonHashBN254 } from 'garaga';
 import { bytecode, abi } from "./assets/circuit.json";
 import { abi as mainAbi } from "./assets/main.json";
 import vkUrl from './assets/vk.bin?url';
@@ -13,6 +14,9 @@ import initNoirC from "@noir-lang/noirc_abi";
 import initACVM from "@noir-lang/acvm_js";
 import acvm from "@noir-lang/acvm_js/web/acvm_js_bg.wasm?url";
 import noirc from "@noir-lang/noirc_abi/web/noirc_abi_wasm_bg.wasm?url";
+
+const CONTRACT_ADDRESS = "0x034f9bf19d8b529d0c8bda09ab470e88e6aa4220ec2ffc04622de60b6cf7aabb";
+const PROVIDER_URL = "http://localhost:5050/rpc"; // https://free-rpc.nethermind.io/sepolia-juno/v0_8
 
 function App() {
   const [proofState, setProofState] = useState<ProofStateData>({
@@ -106,7 +110,7 @@ function App() {
       // Generate witness
       let noir = new Noir({ bytecode, abi: abi as any });
       let execResult = await noir.execute(inputs);
-      console.log(execResult);
+      console.log("exec result", execResult);
       
       // Generate proof
       updateState(ProofState.GeneratingProof);
@@ -130,9 +134,9 @@ function App() {
       // Connect wallet
       updateState(ProofState.ConnectingWallet);
 
-      const provider = new RpcProvider({ nodeUrl: 'https://free-rpc.nethermind.io/sepolia-juno/v0_8' })
+      const provider = new RpcProvider({ nodeUrl: PROVIDER_URL })
 
-      const selectedWalletSWO = await connect();
+/*       const selectedWalletSWO = await connect();
       if (!selectedWalletSWO) {
         throw new Error('No wallet connected');
       }
@@ -140,13 +144,14 @@ function App() {
         provider,
         selectedWalletSWO
       );
-      console.log(myWalletAccount);
+      console.log(myWalletAccount); 
       // Send transaction
       updateState(ProofState.SendingTransaction);
 
-      const contractAddress = '0x057b6efdccdebe6288d1bbc90a31ee52dfd1479ec4422f90c3e40c8054062a44';
-      const mainContract = new Contract(mainAbi, contractAddress, myWalletAccount);
-
+      const contractAddress = CONTRACT_ADDRESS;
+      const mainContract = new Contract(mainAbi, contractAddress, myWalletAccount);*/
+      const mainContract = new Contract(mainAbi, CONTRACT_ADDRESS, provider);
+console.log("before ver");
       // Check verification
       const res = await mainContract.add_solution(callData); // keep the number of elements to pass to the verifier library call
       await provider.waitForTransaction(res.transaction_hash);
@@ -221,12 +226,11 @@ function App() {
               value={inputValue} 
               onChange={(e) => setInputValue(parseInt(e.target.value) || 0)} 
               min="0"
-  type="text" 
-              value={inputY} 
+/*               value={inputY} 
               onChange={(e) => {
                 const value = parseInt(e.target.value);
                 setInputY(isNaN(value) ? 0 : value);
-              }} 
+              }}  */
               disabled={proofState.state !== ProofState.Initial}
             />
           </div>
