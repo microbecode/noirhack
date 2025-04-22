@@ -17,9 +17,11 @@ import acvm from "@noir-lang/acvm_js/web/acvm_js_bg.wasm?url";
 import noirc from "@noir-lang/noirc_abi/web/noirc_abi_wasm_bg.wasm?url";
 
 const VERIFIER_ADDRESS = "0x04f9797572084608b678693928e646ae23a95d05af8a2e282e2203e4e14c26c0";
-const MAIN_ADDRESS = "0x02f2e8275ec991399e1bb708fabc28189cfdca7e451b00608a956d1221656dee";
+const MAIN_ADDRESS = "0x0336b1616b76079ca1e9fe817750368c86bf031ebbc7453df8ff8d1b60ffdb9a";
 const PRIV_KEY = "0x0000000000000000000000000000000071d7bb07b9a64f6f78ac4c816aff4da9"; // First from devnet accounts
 const ACC_ADDRESS = "0x064b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691"; // first from devnet accounts
+const ACC_ADDRESS_NUM = 2846891009026995430665703316224827616914889274105712248413538305735679628945n;
+
 const PROVIDER_URL = "http://localhost:5050/rpc"; // https://free-rpc.nethermind.io/sepolia-juno/v0_8
 
 function App() {
@@ -29,7 +31,7 @@ function App() {
   const [vk, setVk] = useState<Uint8Array | null>(null);
   // Use a ref to reliably track the current state across asynchronous operations
   const currentStateRef = useRef<ProofState>(ProofState.Initial);
-  const [secretKey, setSecretKey] = useState<number>(5);
+  const [secretKey, setSecretKey] = useState<bigint>(ACC_ADDRESS_NUM);
   const [inputValue, setInputValue] = useState<number>(10);
 
   // Initialize WASM on component mount
@@ -115,7 +117,9 @@ function App() {
       let noir = new Noir({ bytecode, abi: abi as any });
       let execResult = await noir.execute(inputs); */
 
-      const input = { x: secretKey, y: inputValue };
+      const input = { x: 5, y: ACC_ADDRESS };
+
+      console.log("input", input);
       
       // Generate witness
       let noir = new Noir({ bytecode, abi: abi as any });
@@ -133,7 +137,7 @@ function App() {
       
       // Prepare calldata
       updateState(ProofState.PreparingCalldata);
-
+  
       await init(); // only in simple
       const callData = getHonkCallData(
         proof.proof,
@@ -172,9 +176,13 @@ function App() {
       // Check verification
       //const res = await verifierContract.verify_ultra_keccak_honk_proof(callData.slice(1));
       //console.log(res);
+
       const res = await mainContract.allow_transfer(callData); // keep the number of elements to pass to the verifier library call
-      await provider.waitForTransaction(res.transaction_hash); 
-      console.log(res);
+      let receipt = await provider.waitForTransaction(res.transaction_hash); 
+      
+      console.log("invoke res", res, receipt);
+
+      
 
       updateState(ProofState.ProofVerified);
     } catch (error) {

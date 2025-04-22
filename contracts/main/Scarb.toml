@@ -5,6 +5,7 @@ edition = "2024_07"
 
 [dependencies]
 starknet = "2.11.2"
+openzeppelin = "1.0.0"
 
 [cairo]
 sierra-replace-ids = false
