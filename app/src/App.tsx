@@ -9,14 +9,17 @@ import { bytecode, abi } from "./assets/circuit.json";
 import { abi as mainAbi } from "./assets/main.json";
 import { abi as verifierAbi } from "./assets/verifier.json";
 import vkUrl from './assets/vk.bin?url';
-import { RpcProvider, Contract, WalletAccount } from 'starknet';
+import { RpcProvider, Contract, WalletAccount, Account } from 'starknet';
 import { connect } from "@starknet-io/get-starknet"
 import initNoirC from "@noir-lang/noirc_abi";
 import initACVM from "@noir-lang/acvm_js";
 import acvm from "@noir-lang/acvm_js/web/acvm_js_bg.wasm?url";
 import noirc from "@noir-lang/noirc_abi/web/noirc_abi_wasm_bg.wasm?url";
 
-const CONTRACT_ADDRESS = "0x030b8c2fa1419b39e97b40b887731b0413624c9057f44d142c5f2bfc66e0991a";
+const VERIFIER_ADDRESS = "0x04f9797572084608b678693928e646ae23a95d05af8a2e282e2203e4e14c26c0";
+const MAIN_ADDRESS = "0x02f2e8275ec991399e1bb708fabc28189cfdca7e451b00608a956d1221656dee";
+const PRIV_KEY = "0x0000000000000000000000000000000071d7bb07b9a64f6f78ac4c816aff4da9"; // First from devnet accounts
+const ACC_ADDRESS = "0x064b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691"; // first from devnet accounts
 const PROVIDER_URL = "http://localhost:5050/rpc"; // https://free-rpc.nethermind.io/sepolia-juno/v0_8
 
 function App() {
@@ -143,7 +146,10 @@ function App() {
       // Connect wallet
       updateState(ProofState.ConnectingWallet);
 
-      const provider = new RpcProvider({ nodeUrl: PROVIDER_URL })
+      const provider = new RpcProvider({ nodeUrl: PROVIDER_URL });
+
+      
+      const account = new Account(provider, ACC_ADDRESS, PRIV_KEY);
 
 /*       const selectedWalletSWO = await connect();
       if (!selectedWalletSWO) {
@@ -157,14 +163,16 @@ function App() {
       // Send transaction
       updateState(ProofState.SendingTransaction);
 
-      const contractAddress = CONTRACT_ADDRESS;
-      const verifierContract = new Contract(verifierAbi, contractAddress, myWalletAccount);*/
-      const mainContract = new Contract(mainAbi, CONTRACT_ADDRESS, provider);
+      const contractAddress = CONTRACT_ADDRESS;*/
+//      const verifierContract = new Contract(verifierAbi, VERIFIER_ADDRESS, myWalletAccount);
+      const verifierContract = new Contract(verifierAbi, VERIFIER_ADDRESS, provider);
+      const mainContract = new Contract(mainAbi, MAIN_ADDRESS, provider);
+      mainContract.connect(account);
       console.log("before ver");
       // Check verification
-      /*const res = await mainContract.verify_ultra_keccak_honk_proof(callData.slice(1));
-      console.log(res);*/
-       const res = await mainContract.allow_transfer(callData); // keep the number of elements to pass to the verifier library call
+      //const res = await verifierContract.verify_ultra_keccak_honk_proof(callData.slice(1));
+      //console.log(res);
+      const res = await mainContract.allow_transfer(callData); // keep the number of elements to pass to the verifier library call
       await provider.waitForTransaction(res.transaction_hash); 
       console.log(res);
 
