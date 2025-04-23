@@ -75,6 +75,7 @@ artifacts:
 	cp ./circuit/target/vk ./app/src/assets/vk.bin
 	cp ./contracts/target/release/verifier_UltraKeccakHonkVerifier.contract_class.json ./app/src/assets/verifier.json
 	cp ./contracts/target/release/main_MainContract.contract_class.json ./app/src/assets/main.json
+	cp ./contracts/target/release/main_Erc20.contract_class.json ./app/src/assets/erc20.json
 
 run-app:
 	cd app && bun run dev

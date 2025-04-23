@@ -7,6 +7,7 @@ import { flattenFieldsAsArray } from "./helpers/proof";
 import { getHonkCallData, init, poseidonHashBN254 } from 'garaga';
 import { bytecode, abi } from "./assets/circuit.json";
 import { abi as mainAbi } from "./assets/main.json";
+import { abi as erc20Abi } from "./assets/erc20.json";
 import { abi as verifierAbi } from "./assets/verifier.json";
 import vkUrl from './assets/vk.bin?url';
 import { RpcProvider, Contract, WalletAccount, Account } from 'starknet';
@@ -98,6 +99,20 @@ function App() {
     currentStateRef.current = newState;
     setProofState({ state: newState, error: undefined });
   };
+
+  const transfer = async () => {
+    const provider = new RpcProvider({ nodeUrl: PROVIDER_URL });
+
+      
+      const account = new Account(provider, ACC_ADDRESS, PRIV_KEY);
+      const erc20Contract = new Contract(erc20Abi, ERC20_ADDRESS, provider);
+      erc20Contract.connect(account);
+
+      const res = await erc20Contract.mint(VERIFIER_ADDRESS, 5);
+      let receipt = await provider.waitForTransaction(res.transaction_hash); 
+      
+      console.log("invoke res", res, receipt);
+  }
 
   const startProcess = async () => {
     try {
@@ -285,6 +300,7 @@ function App() {
         {(proofState.error || proofState.state === ProofState.ProofVerified) && (
           <button className="reset-button" onClick={resetState}>Reset</button>
         )}
+        <button className="reset-button" onClick={transfer}>Transfer</button>
       </div>
     </div>
   )
