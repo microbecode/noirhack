@@ -16,7 +16,8 @@ import initACVM from "@noir-lang/acvm_js";
 import acvm from "@noir-lang/acvm_js/web/acvm_js_bg.wasm?url";
 import noirc from "@noir-lang/noirc_abi/web/noirc_abi_wasm_bg.wasm?url";
 
-const MAIN_ADDRESS = "0x05b3a6961b4773017d6a3c791a8cc4353f506e645b038d907abbdd96406bd4ce";
+const MAIN_ADDRESS = "0x055d7068c7cca9135655db356daf067c7d50641f495e92d0742955101e92a707";
+const ERC20_ADDRESS = "0x052013616c40fe27e0318c87bdaaba8038db2af451c2419c979400f03710d117";
 const VERIFIER_ADDRESS = "0x04f9797572084608b678693928e646ae23a95d05af8a2e282e2203e4e14c26c0";
 const PRIV_KEY = "0x0000000000000000000000000000000071d7bb07b9a64f6f78ac4c816aff4da9"; // First from devnet accounts
 const ACC_ADDRESS = "0x064b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691"; // first from devnet accounts

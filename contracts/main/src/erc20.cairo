@@ -1,6 +1,6 @@
 #[starknet::contract]
-mod NewStrk {
-    use openzeppelin::token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
+mod Erc20 {
+    use openzeppelin::token::erc20::{ERC20Component};
     use starknet::ContractAddress;
 
     component!(path: ERC20Component, storage: erc20, event: ERC20Event);
@@ -23,6 +23,12 @@ mod NewStrk {
     enum Event {
         #[flat]
         ERC20Event: ERC20Component::Event,
+        MyTransfer: MyTransfer
+    }
+
+    #[derive(Drop, starknet::Event)]
+    pub struct MyTransfer {
+        Address: ContractAddress,
     }
 
     #[constructor]
@@ -40,4 +46,25 @@ mod NewStrk {
             self.erc20.mint(recipient, amount);
         }
     }
+
+    impl ERC20HooksImpl of ERC20Component::ERC20HooksTrait<ContractState> {
+        fn before_update(
+          ref self: ERC20Component::ComponentState<ContractState>,
+          from: ContractAddress,
+          recipient: ContractAddress,
+          amount: u256
+        ) {
+            let mut contract_state = ERC20Component::HasComponent::get_contract_mut(ref self);
+            contract_state.emit(MyTransfer { Address: recipient });
+        }
+      
+        fn after_update(
+          ref self: ERC20Component::ComponentState<ContractState>,
+          from: ContractAddress,
+          recipient: ContractAddress,
+          amount: u256
+        ) {
+          // Some additional behavior after the transfer
+        }
+      }
 }

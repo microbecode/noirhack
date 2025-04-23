@@ -57,6 +57,7 @@ declare-verifier:
 
 declare-main:
 	cd contracts && sncast --accounts-file accounts.json --account devnet0 declare --contract-name MainContract --url http://localhost:5050 --package main
+	cd contracts && sncast --accounts-file accounts.json --account devnet0 declare --contract-name Erc20 --url http://localhost:5050 --package main
 
 deploy-verifier:
 	# TODO: use class hash from the result of the `make declare-verifier` step
@@ -67,6 +68,7 @@ deploy-main:
 	# use verifier address 
 	# NOTE: the public key is corresponding to the private key `1`
 	cd contracts && sncast --accounts-file accounts.json --account devnet0 deploy --class-hash 0x04ea8bf0821bf6758cb14f9bb0225341c1a8c5200f150746ea9ddc0cc6cce517 --arguments 0x040408b7c73092d7b26770ea4b72cf491234b94ccd9f4bd33545f5fd2f15b3e1  --url http://localhost:5050
+	cd contracts && sncast --accounts-file accounts.json --account devnet0 deploy --class-hash 0x03439baeb78c8e8a37fe14bba4ecf7a01e5b4e226e24c2b7c10dd510c584c142 --url http://localhost:5050
 
 artifacts:
 	cp ./circuit/target/circuit.json ./app/src/assets/circuit.json
