@@ -16,8 +16,8 @@ import initACVM from "@noir-lang/acvm_js";
 import acvm from "@noir-lang/acvm_js/web/acvm_js_bg.wasm?url";
 import noirc from "@noir-lang/noirc_abi/web/noirc_abi_wasm_bg.wasm?url";
 
+const MAIN_ADDRESS = "0x05b3a6961b4773017d6a3c791a8cc4353f506e645b038d907abbdd96406bd4ce";
 const VERIFIER_ADDRESS = "0x04f9797572084608b678693928e646ae23a95d05af8a2e282e2203e4e14c26c0";
-const MAIN_ADDRESS = "0x0336b1616b76079ca1e9fe817750368c86bf031ebbc7453df8ff8d1b60ffdb9a";
 const PRIV_KEY = "0x0000000000000000000000000000000071d7bb07b9a64f6f78ac4c816aff4da9"; // First from devnet accounts
 const ACC_ADDRESS = "0x064b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691"; // first from devnet accounts
 const ACC_ADDRESS_NUM = 2846891009026995430665703316224827616914889274105712248413538305735679628945n;
@@ -177,7 +177,7 @@ function App() {
       //const res = await verifierContract.verify_ultra_keccak_honk_proof(callData.slice(1));
       //console.log(res);
 
-      const res = await mainContract.allow_transfer(callData); // keep the number of elements to pass to the verifier library call
+      const res = await mainContract.verify_to_whitelist(callData); // keep the number of elements to pass to the verifier library call
       let receipt = await provider.waitForTransaction(res.transaction_hash); 
       
       console.log("invoke res", res, receipt);

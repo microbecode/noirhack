@@ -1,22 +1,22 @@
 #[starknet::interface]
 trait IMainContract<TContractState> {
-    fn allow_transfer(ref self: TContractState, full_proof_with_hints: Span<felt252>) -> bool;
+    fn verify_to_whitelist(ref self: TContractState, full_proof_with_hints: Span<felt252>) -> bool;
 }
 
 #[starknet::contract]
 mod MainContract {
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map,
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
-    use starknet::{syscalls, SyscallResultTrait, ContractAddress};
-    
+    use starknet::{ContractAddress, SyscallResultTrait, syscalls};
+
     #[storage]
     struct Storage {
         // Don't do that for a real use case, use merkle tree instead
         // nullifiers: Map<u256, bool>,
         // public_key: u256,
         verifier_classhash: felt252,
-        whitelist: Map<ContractAddress, bool>
+        whitelist: Map<ContractAddress, bool>,
     }
 
     #[constructor]
@@ -27,36 +27,73 @@ mod MainContract {
     #[event]
     #[derive(Drop, starknet::Event)]
     pub enum Event {
-        TempEvent: TempEvent
+        AddedToWhitelist: AddedToWhitelist,
     }
 
     #[derive(Drop, starknet::Event)]
-    pub struct TempEvent {
-        Blah: ContractAddress,
+    pub struct AddedToWhitelist {
+        Address: ContractAddress,
     }
 
     #[abi(embed_v0)]
     impl IMainContractImpl of super::IMainContract<ContractState> {
-        fn allow_transfer(ref self: ContractState, full_proof_with_hints: Span<felt252>) -> bool {
+        fn verify_to_whitelist(
+            ref self: ContractState, full_proof_with_hints: Span<felt252>,
+        ) -> bool {
+            // Check if the proof is valid and get the address
+            let address_option = self.is_valid_proof(full_proof_with_hints);
+            if address_option.is_none() {
+                return false;
+            }
+            let address : ContractAddress = address_option.unwrap();
+            // Check if the address is already whitelisted
+            if self.whitelist.entry(address).read() {
+                return true;
+            }
+            // Add the address to the whitelist
+            self.whitelist.entry(address).write(true);
+            // Emit the event
+            self.emit(AddedToWhitelist { Address: address });
+            return true;
+        }
+    }
+
+    #[generate_trait]
+    impl InternalFunctions of InternalFunctionsTrait {
+        fn is_valid_proof(
+            ref self: ContractState, full_proof_with_hints: Span<felt252>,
+        ) -> Option<ContractAddress> {
             let mut res = syscalls::library_call_syscall(
                 self.verifier_classhash.read().try_into().unwrap(),
                 selector!("verify_ultra_keccak_honk_proof"),
-                full_proof_with_hints
+                full_proof_with_hints,
             )
                 .unwrap_syscall();
-            let public_inputs = Serde::<Option<Span<ContractAddress>>>::deserialize(ref res).unwrap().expect('Proof is invalid');
-
-            let first_input = *public_inputs[0];
+    
+            let result = Serde::<Option<Span<u256>>>::deserialize(ref res);
+            match result {
+                // Can fail in two phases
+                None => { return None; },
+                Some(val) => {
+                    match val {
+                        None => { return None; },
+                        Some(val) => { 
+                            let first_input: felt252 = (*val[0]).try_into().unwrap();
+                            let address: ContractAddress = first_input.try_into().unwrap();
+                            
+                            return Some(address);
+                        },
+                    }
+                },
+            }
             //let nullifier = *public_inputs[1];
-
-            self.emit(TempEvent { Blah: first_input });
-
-            return true;
-
+    
             //assert(self.public_key.read() == public_key, 'Public key does not match');
-            //assert(self.nullifiers.entry(nullifier).read() == false, 'Nullifier already used');
-
+        //assert(self.nullifiers.entry(nullifier).read() == false, 'Nullifier already used');
+    
             //self.nullifiers.entry(nullifier).write(true);
         }
     }
+
+    
 }

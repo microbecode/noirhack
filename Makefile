@@ -66,7 +66,7 @@ deploy-main:
 	# TODO: use class hash from the result of the `make declare-main` step
 	# use verifier address 
 	# NOTE: the public key is corresponding to the private key `1`
-	cd contracts && sncast --accounts-file accounts.json --account devnet0 deploy --class-hash 0x032156e5a8a6821d5ea32b4b3172f735f357cc19445a47a7345e535f781fdb12 --arguments 0x040408b7c73092d7b26770ea4b72cf491234b94ccd9f4bd33545f5fd2f15b3e1  --url http://localhost:5050
+	cd contracts && sncast --accounts-file accounts.json --account devnet0 deploy --class-hash 0x04ea8bf0821bf6758cb14f9bb0225341c1a8c5200f150746ea9ddc0cc6cce517 --arguments 0x040408b7c73092d7b26770ea4b72cf491234b94ccd9f4bd33545f5fd2f15b3e1  --url http://localhost:5050
 
 artifacts:
 	cp ./circuit/target/circuit.json ./app/src/assets/circuit.json
