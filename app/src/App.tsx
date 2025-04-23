@@ -6,7 +6,7 @@ import { UltraHonkBackend } from "@aztec/bb.js";
 import { flattenFieldsAsArray } from "./helpers/proof";
 import { getHonkCallData, init, poseidonHashBN254 } from 'garaga';
 import { bytecode, abi } from "./assets/circuit.json";
-import { abi as mainAbi } from "./assets/main.json";
+import { abi as registryAbi } from "./assets/registry.json";
 import { abi as erc20Abi } from "./assets/erc20.json";
 import { abi as verifierAbi } from "./assets/verifier.json";
 import vkUrl from './assets/vk.bin?url';
@@ -17,8 +17,8 @@ import initACVM from "@noir-lang/acvm_js";
 import acvm from "@noir-lang/acvm_js/web/acvm_js_bg.wasm?url";
 import noirc from "@noir-lang/noirc_abi/web/noirc_abi_wasm_bg.wasm?url";
 
-const MAIN_ADDRESS = "0x055d7068c7cca9135655db356daf067c7d50641f495e92d0742955101e92a707";
-const ERC20_ADDRESS = "0x052013616c40fe27e0318c87bdaaba8038db2af451c2419c979400f03710d117";
+const REGISTRY_ADDRESS = "0x059cb8f339af75bd79b2893f36f9efadc32ba68ec78bdfdace4d0f7cbe377283";
+const ERC20_ADDRESS = "0x013f1331f7dd9a1aaf26b67a798ef7d1f1b2476b50b39b36405a717010031acd";
 const VERIFIER_ADDRESS = "0x04f9797572084608b678693928e646ae23a95d05af8a2e282e2203e4e14c26c0";
 const PRIV_KEY = "0x0000000000000000000000000000000071d7bb07b9a64f6f78ac4c816aff4da9"; // First from devnet accounts
 const ACC_ADDRESS = "0x064b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691"; // first from devnet accounts
@@ -186,7 +186,7 @@ function App() {
       const contractAddress = CONTRACT_ADDRESS;*/
 //      const verifierContract = new Contract(verifierAbi, VERIFIER_ADDRESS, myWalletAccount);
       const verifierContract = new Contract(verifierAbi, VERIFIER_ADDRESS, provider);
-      const mainContract = new Contract(mainAbi, MAIN_ADDRESS, provider);
+      const mainContract = new Contract(registryAbi, REGISTRY_ADDRESS, provider);
       mainContract.connect(account);
       console.log("before ver");
       // Check verification

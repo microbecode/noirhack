@@ -1,10 +1,10 @@
 #[starknet::interface]
-trait IMainContract<TContractState> {
+trait IRegistry<TContractState> {
     fn verify_to_whitelist(ref self: TContractState, full_proof_with_hints: Span<felt252>) -> bool;
 }
 
 #[starknet::contract]
-mod MainContract {
+pub mod Registry {
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
@@ -35,7 +35,7 @@ mod MainContract {
     }
 
     #[abi(embed_v0)]
-    impl IMainContractImpl of super::IMainContract<ContractState> {
+    impl IRegistryImpl of super::IRegistry<ContractState> {
         fn verify_to_whitelist(
             ref self: ContractState, full_proof_with_hints: Span<felt252>,
         ) -> bool {

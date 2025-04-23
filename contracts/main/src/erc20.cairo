@@ -2,6 +2,7 @@
 mod Erc20 {
     use openzeppelin::token::erc20::{ERC20Component};
     use starknet::ContractAddress;
+    use crate::registry::Registry;
 
     component!(path: ERC20Component, storage: erc20, event: ERC20Event);
 
@@ -16,6 +17,7 @@ mod Erc20 {
     struct Storage {
         #[substorage(v0)]
         erc20: ERC20Component::Storage,
+        registry: ContractAddress
     }
 
     #[event]
