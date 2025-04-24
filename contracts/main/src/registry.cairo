@@ -1,6 +1,9 @@
+use starknet::{ContractAddress};
+
 #[starknet::interface]
-trait IRegistry<TContractState> {
+pub trait IRegistry<TContractState> {
     fn verify_to_whitelist(ref self: TContractState, full_proof_with_hints: Span<felt252>) -> bool;
+    fn is_whitelisted(self: @TContractState, address: ContractAddress) -> bool;
 }
 
 #[starknet::contract]
@@ -59,6 +62,10 @@ pub mod Registry {
             self.emit(AddedToWhitelist { Address: address });
 
             return true;
+        }
+
+        fn is_whitelisted(self: @ContractState, address: ContractAddress) -> bool {
+            return self.whitelist.entry(address).read();
         }
     }
 

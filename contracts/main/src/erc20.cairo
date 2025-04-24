@@ -2,7 +2,11 @@
 mod Erc20 {
     use openzeppelin::token::erc20::{ERC20Component};
     use starknet::ContractAddress;
-    use crate::registry::Registry;
+    use starknet::storage::{
+        Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
+        StoragePointerWriteAccess,
+    };
+    use crate::registry::{ Registry, IRegistryDispatcher, IRegistryDispatcherTrait };
 
     component!(path: ERC20Component, storage: erc20, event: ERC20Event);
 
@@ -25,17 +29,18 @@ mod Erc20 {
     enum Event {
         #[flat]
         ERC20Event: ERC20Component::Event,
-        MyTransfer: MyTransfer
+        PassedWhitelist: PassedWhitelist
     }
 
     #[derive(Drop, starknet::Event)]
-    pub struct MyTransfer {
+    pub struct PassedWhitelist {
         Address: ContractAddress,
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState) {
+    fn constructor(ref self: ContractState, registry: ContractAddress) {
         self.erc20.initializer("Token", "TKN");
+        self.registry.write(registry);
     }
 
     #[generate_trait]
@@ -57,7 +62,11 @@ mod Erc20 {
           amount: u256
         ) {
             let mut contract_state = ERC20Component::HasComponent::get_contract_mut(ref self);
-            contract_state.emit(MyTransfer { Address: recipient });
+
+            let registry_dispatcher = IRegistryDispatcher { contract_address: contract_state.registry.read() };
+            assert!(registry_dispatcher.is_whitelisted(recipient), "Recipient is not whitelisted");
+
+            contract_state.emit(PassedWhitelist { Address: recipient });
         }
       
         fn after_update(

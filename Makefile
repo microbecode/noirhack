@@ -63,12 +63,14 @@ deploy-verifier:
 	# TODO: use class hash from the result of the `make declare-verifier` step
 	cd contracts && sncast --accounts-file accounts.json --account devnet0 deploy --class-hash 0x040408b7c73092d7b26770ea4b72cf491234b94ccd9f4bd33545f5fd2f15b3e1 --url http://localhost:5050
 
-deploy-main:
+deploy-registry:
 	# TODO: use class hash from the result of the `make declare-main` step
 	# use verifier address 
 	# NOTE: the public key is corresponding to the private key `1`
-	cd contracts && sncast --accounts-file accounts.json --account devnet0 deploy --class-hash 0x02695a0a55c88f6b63a83670a85acdcc86abed26a7b602f3ed9a89d440402c85 --arguments 0x040408b7c73092d7b26770ea4b72cf491234b94ccd9f4bd33545f5fd2f15b3e1  --url http://localhost:5050
-	cd contracts && sncast --accounts-file accounts.json --account devnet0 deploy --class-hash 0x03439baeb78c8e8a37fe14bba4ecf7a01e5b4e226e24c2b7c10dd510c584c142 --url http://localhost:5050
+	cd contracts && sncast --accounts-file accounts.json --account devnet0 deploy --class-hash 0x04b22abcd26748b40d1f5e9f4ca5455a2696261ef98eb1e1dc2c68a99ec1840b --arguments 0x040408b7c73092d7b26770ea4b72cf491234b94ccd9f4bd33545f5fd2f15b3e1  --url http://localhost:5050
+
+deploy-erc20:
+	cd contracts && sncast --accounts-file accounts.json --account devnet0 deploy --class-hash 0x0470d9def76aba5cd4b1f695ef88f80c0ac69451f1c99cb3e0b6970a1a14c211 --arguments 0x04f46cf0db60007c365ac1852f6bccada01e537934bf468613304c63bb46d66d --url http://localhost:5050
 
 artifacts:
 	cp ./circuit/target/circuit.json ./app/src/assets/circuit.json
