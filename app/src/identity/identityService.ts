@@ -1,14 +1,13 @@
 console.log("identityService.ts: Top of file executing.");
 
 import { Resolver, DIDResolver, DIDResolutionResult, DIDDocument, VerificationMethod } from 'did-resolver';
-import { SDJwtVcInstance } from '@sd-jwt/sd-jwt-vc';
-import { Hasher, Signer, SaltGenerator, DisclosureFrame } from '@sd-jwt/types';
 import { SignJWT, exportJWK, JWK, compactVerify, createRemoteJWKSet, importJWK } from 'jose';
 import { createHash } from 'node:crypto';
 import { webcrypto } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
+// Remove ESM-specific imports when targeting CJS
+// import { fileURLToPath } from 'node:url';
 
 console.log("identityService.ts: Imports finished.");
 
@@ -20,10 +19,13 @@ if (typeof globalThis.crypto === 'undefined') {
 
 // --- Static Issuer Configuration ---
 console.log("Loading static issuer configuration...");
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename); 
+// CJS doesn't need import.meta.url; __dirname is available globally
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename); // __dirname is global in CJS
+
 // Correct path relative to compiled file (dist/src/identity/identityService.js) 
 // needs to go up two levels to find dist/config
+// IMPORTANT: When targeting CJS, __dirname refers to the *output* directory (dist/src/identity)
 const configDir = path.join(__dirname, '../../config'); 
 const privateKeyPath = path.join(configDir, 'issuer.private.jwk');
 const didDocumentPath = path.join(configDir, 'issuer.did.json'); // Path to DID document
@@ -91,8 +93,8 @@ try {
         loadedPrivateJwk.kid = issuerKid; // issuerKid is non-null here due to the check above
     }
 
-    console.log("Attempting to import JWK asynchronously...");
-    issuerPrivateKeyPromise = importJWK(loadedPrivateJwk, 'ES256') as Promise<CryptoKey>;
+    console.log("Attempting to import RSA JWK asynchronously...");
+    issuerPrivateKeyPromise = importJWK(loadedPrivateJwk, 'RS256') as Promise<CryptoKey>;
     console.log("importJWK called, promise obtained.");
     
     issuerPrivateKeyPromise.then(
@@ -132,121 +134,67 @@ async function getPrivateKey(): Promise<CryptoKey> {
     }
 }
 
+// --- Standard JWT VC Issuance Setup ---
 
-// --- SD-JWT VC Issuance Setup ---
-
-// Simple Sha-256 Hasher Implementation
-const hasher: Hasher = async (data: string | ArrayBuffer) => {
-  const inputData = typeof data === 'string' ? data : Buffer.from(data);
-  const digest = createHash('sha256').update(inputData).digest();
-  return digest; 
-};
-
-// Signer Implementation using loaded key
-const signer: Signer = async (data: string | Uint8Array) => {
-  console.log("signer: Attempting to get private key...");
-  const privateKey = await getPrivateKey(); // Get the resolved key
-  console.log("signer: Private key obtained.");
-
-  // Assert issuerKid is a string here, as loading should have thrown otherwise
-  if (typeof issuerKid !== 'string') {
-    throw new Error("Issuer KID is not available for signing.");
-  }
-
-  console.warn("Using semi-mock signer - assumes input data is payload, verify library specifics!");
-  
-  const protectedHeader = { alg: 'ES256', kid: issuerKid }; // Now issuerKid is known to be string
-  const payloadToSign = { data: (typeof data === 'string' ? data : Buffer.from(data).toString('utf8')).substring(0, 50) }; 
-
-  console.log("signer: BEFORE await new SignJWT(...).sign(...)");
-  const jws = await new SignJWT(payloadToSign)
-    .setProtectedHeader(protectedHeader)
-    .setIssuedAt()
-    .sign(privateKey); // Use the loaded private key 
-  console.log("signer: AFTER await new SignJWT(...).sign(...)");
-
-  const signature = jws.split('.')[2];
-  console.log("signer: Returning signature.");
-  return signature;
-};
-
-// Simple Salt Generator
-const saltGenerator: SaltGenerator = (length: number) => {
-    const salt = Buffer.alloc(length);
-    for (let i = 0; i < length; i++) {
-        salt[i] = Math.floor(Math.random() * 256);
-    }
-    return salt.toString('base64url');
-};
-
-// Instantiate the SD-JWT VC library
-const sdJwtVcInstance = new SDJwtVcInstance({
-  signer: signer,        
-  signAlg: 'ES256',      
-  hasher: hasher,        
-  hashAlg: 'sha-256',
-  saltGenerator: saltGenerator, 
-});
-
-// Function to issue a new Identity Credential
+// Function to issue a new Identity Credential (Standard JWT)
 async function issueIdentityCredential(subjectDid: string, nationality: string) {
-  console.log("issueIdentityCredential: Called."); 
+  console.log("issueIdentityCredential (Standard JWT): Called."); 
 
-  // Assert issuerDid is a string here, as loading should have thrown otherwise
-  if (typeof issuerDid !== 'string') {
-    throw new Error("Issuer DID is not available for credential issuance.");
+  if (typeof issuerDid !== 'string' || typeof issuerKid !== 'string') {
+    throw new Error("Issuer DID or KID is not available for credential issuance.");
   }
 
   const now = Math.floor(Date.now() / 1000);
   const expiration = now + (365 * 24 * 60 * 60); // Expires in 1 year
 
-  // 1. Define Claims (issuerDid is now known to be a string)
+  // 1. Define Claims 
   const claims = {
     iss: issuerDid, 
     sub: subjectDid,
     iat: now,
     exp: expiration,
-    vct: "IdentityCredential", 
-    nationality: nationality, 
+    // vct: "IdentityCredential", // Optional standard claim
+    nationality: nationality, // Custom claim
+    // Simplified VC structure for JWT (SD-JWT structure removed)
     vc: { 
-      "@context": [
-        "https://www.w3.org/2018/credentials/v1",
-        "https://w3id.org/sd-jwt-vc/v1" 
-      ],
+      "@context": ["https://www.w3.org/2018/credentials/v1"],
       "type": ["VerifiableCredential", "IdentityCredential"],
-      "issuer": issuerDid, // Now issuerDid is known to be string
+      "issuer": issuerDid, 
       "issuanceDate": new Date(now * 1000).toISOString(),
       "expirationDate": new Date(expiration * 1000).toISOString(),
       "credentialSubject": {
-        "id": subjectDid
+        "id": subjectDid,
+        "nationality": nationality // Add claims directly to credentialSubject if desired
       }
     }
   };
 
-  // 2. Define Disclosure Frame 
-  const disclosureFrame: DisclosureFrame<typeof claims> = {
-    _sd: ['nationality'], 
-    vc: { 
-        credentialSubject: { _sd: [] } 
-    }
-  };
+  // 2. Define Protected Header (specify RS256)
+  const protectedHeader = { alg: 'RS256' as const, kid: issuerKid };
 
-  console.log("Issuing SD-JWT VC with claims:", claims);
-  console.log("Disclosure Frame:", disclosureFrame);
+  console.log("Issuing Standard JWT VC with claims:", claims);
 
   try {
-    // 3. Issue Credential
-    console.log("issueIdentityCredential: BEFORE await sdJwtVcInstance.issue(...)");
-    const sdJwtVc = await sdJwtVcInstance.issue(claims, disclosureFrame);
-    console.log("issueIdentityCredential: AFTER await sdJwtVcInstance.issue(...)");
-    console.log("\nIssued SD-JWT VC (includes kid in header):\n", sdJwtVc); 
-    return sdJwtVc;
-  } catch (error) {
-    console.error("Error issuing SD-JWT VC:", error);
+    console.log("Attempting to get private key for signing...");
+    const privateKey = await getPrivateKey(); // Get the resolved RSA key
+    console.log("Private key obtained.");
+
+    // 3. Issue Credential using jose.SignJWT
+    console.log("issueIdentityCredential: BEFORE await new SignJWT(...).sign(...) using RS256");
+    const jwt = await new SignJWT(claims)
+      .setProtectedHeader(protectedHeader)
+      // No setIssuedAt() needed as 'iat' is already in claims
+      .sign(privateKey); // Use the loaded RSA private key 
+    console.log("issueIdentityCredential: AFTER await new SignJWT(...).sign(...)");
+
+    console.log("\nIssued Standard JWT VC:\n", jwt); 
+    return jwt; // Return the compact JWS string
+
+  } catch (error) { // Catch block was missing indentation
+    console.error("Error issuing Standard JWT VC:", error);
     throw error;
   }
 }
-
 
 // --- Exports ---
 // Export only the needed issuance function and config details

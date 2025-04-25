@@ -9,10 +9,9 @@
       "type": "JsonWebKey2020",
       "controller": "did:web:gov.example",
       "publicKeyJwk": {
-        "kty": "EC",
-        "x": "_Pzz_6rvG5CjMJ_KPBRXVqM7eCaxBLEoo2ZqjAhKoF8",
-        "y": "S5BezL2e752QjxMxPXNTEN_Bg28yW72-ycEfsehQxXM",
-        "crv": "P-256",
+        "kty": "RSA",
+        "n": "7Hlllm_CC_uxFQm7N2JFJe8BUH1mIdPE9rB-lFRaqMGVSqdgQ5Q4QyVAt6McciAu2t44PYHyFz3CVyeKu-wlcnoQjnAoMyMaM1wdYcMc-eAYhDMhNFB-lDZ3O5hz2L6AoKuQbJmoLd_s1-y1HbOJYAsiUL_5W6Sae39evcAGWhB_TBW0J7qPp3EHw3d5C54YMpMXN1EE-JvssFRzNTcnBn7-_mkLonExBMrKwsULggVs7DYk9at1rZHAAO6Vphtby_ZlZpcLAhFPY9_fNVUq7cdyIUkpZ-YWy1AfQeHMvUSiWCpPYTLuYbJXoNtU8gWNJcpmqNWqBxccrlJIiN5b0w",
+        "e": "AQAB",
         "kid": "did:web:gov.example#key-1"
       }
     }

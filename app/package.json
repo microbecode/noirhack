@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:script": "tsc -p tsconfig.build.json --listFiles && cp -r config dist/config",
-    "create-issuer": "node dist/scripts/createIssuer.js",
-    "start:test": "node dist/src/identity/testIssuance.js",
+    "build:script": "tsc -p tsconfig.build.json && find ./dist/src/scripts -depth -name '*.js' -exec sh -c 'mv \"$1\" \"${1%.js}.cjs\"' _ {} \\; && find ./dist/src/identity -depth -name '*.js' -exec sh -c 'mv \"$1\" \"${1%.js}.cjs\"' _ {} \\; && cp -r config dist/config",
+    "create-issuer": "node dist/src/scripts/createIssuer.cjs",
+    "create-vc": "node dist/src/scripts/createJwtVc.cjs",
+    "prepare-jwt-inputs": "node dist/src/scripts/prepareJwtInputs.cjs",
+    "start:test": "node dist/src/identity/testIssuance.cjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -21,6 +23,7 @@
     "did-resolver": "^4.1.0",
     "garaga": "=0.17.0",
     "jose": "^6.0.10",
+    "noir-jwt": "^0.4.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "starknet": "^7.1.0"
@@ -35,7 +38,7 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
-    "typescript": "^5.9.0-dev.20250419",
+    "typescript": "5.8.3",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.3.2"
   }

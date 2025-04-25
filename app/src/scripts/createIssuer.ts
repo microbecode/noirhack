@@ -1,7 +1,8 @@
 import { generateKeyPair, exportJWK } from 'jose';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { fileURLToPath } from 'node:url'; // Import necessary function for ESM
+// Remove ESM-specific imports when targeting CJS
+// import { fileURLToPath } from 'node:url'; 
 import { webcrypto } from 'node:crypto'; // Import webcrypto
 
 // Polyfill global crypto if needed
@@ -10,12 +11,13 @@ if (typeof globalThis.crypto === 'undefined') {
     globalThis.crypto = webcrypto as any; 
 }
 
-// Get current directory in ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// CJS doesn't need import.meta.url; __dirname is available globally
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename); // __dirname is global in CJS
 
 // Configuration
-const configDir = path.join(__dirname, '../../config'); // Output directory relative to script location
+// Use process.cwd() to ensure the config directory is always created in the project root
+const configDir = path.resolve(process.cwd(), 'config'); 
 const privateKeyFile = path.join(configDir, 'issuer.private.jwk');
 const didDocumentFile = path.join(configDir, 'issuer.did.json');
 const issuerDid = 'did:web:gov.example';
@@ -32,8 +34,8 @@ async function createIssuerConfig() {
     }
 
     // 2. Generate Key Pair
-    console.log("Generating ES256 key pair...");
-    const { publicKey, privateKey } = await generateKeyPair('ES256', { extractable: true });
+    console.log("Generating RS256 key pair...");
+    const { publicKey, privateKey } = await generateKeyPair('RS256', { extractable: true });
     console.log("Key pair generated.");
 
     // 3. Export Keys as JWK
@@ -80,4 +82,4 @@ async function createIssuerConfig() {
   }
 }
 
-createIssuerConfig(); 
+createIssuerConfig();
