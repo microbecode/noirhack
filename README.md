@@ -1,122 +1,126 @@
-# Scaffold Garaga app
+# StarkComply
 
-This is a Noir+Garaga+Starknet starter with in-browser proving and a step-by-step guide how to:
-- Generate and deploy UltraHonk proof verifier contract to Starknet devnet
-- Add state to your privacy preserving app
-- Add wallet connection and deploy to public testnet
+StarkComply combines Noir privacy with a compliant Starknet token.
 
-## Install
+The project utilizes the following building blocks:
+- A Noir circuit for verifying user's country.
+- Garaga library for generating a Cairo verifier for the Noir circuit.
+- A Cairo registry contract that whitelists addresses that have a valid Noir proof.
+- A Cairo ERC20 token that can be transferred only if the recipient is whitelisted in the registry.
 
-Ensure you have node.js >= 20 installed.  
+This project can be utilized for creating tokens that require privacy-preserving compliance (a CBDC, for example).
 
-Bun is used for package management, install it with:
-```sh
-make install-bun
-```
+## Usage flow
 
-For compiling Noir circuits and generating proofs we need specific versions of Aztec packages:
-```sh
-make install-noir
-make install-barretenberg
-```
+A typical flow works like this:
 
-Starknet toolkit comes in a single bundle via asdf (the following command will install it if you don't have it):
-```sh
-make install-starknet
-```
+1. The user provides a [JWT](https://jwt.io/) JSON disclosing the user's country. The signed JWT is received from a trusted source.
+1. The Noir circuit verifies the JWT, extracts the country information and generates a ZK proof for it.
+1. Garaga converts the Noir circuit into a Cairo verifier contract.
+1. The user (or any other party with the needed data) invokes a Cairo registry contract to register their address with the proof. The registry contract verifies the proof and adds the user's address in a whitelist.
+1. Once the user's address has been whitelisted, he can receive (and subsequently, send) a special Cairo ERC20 token
+1. Additionally, whitelist access can be revoked via a separate Noir circuit, further enhancing control over token transfers.
 
-We also need to install a tool for spawning local Starknet chain:
-```sh
-make install-devnet
-```
+## Installation
 
-Finally we need to install Garaga. Make sure you have Python 3.10 in your system. You may also need to start a separate Python virtual environment for this to work. You can do that with `python3.10 -m venv garaga-venv && source garaga-venv/bin/activate`. Then install with:
+**Prerequisites:**
+- Node.js (>= 20)
+- Python 3.10
+- [Bun](https://bun.sh/) as the package manager
 
-```sh
-make install-garaga
-```
+1. **Install Bun:**  
+   ```sh
+   make install-bun
+   ```
 
-Note that we need specific versions of Noir, Barretenberg, and Garaga to work well together. If you are experiencing any issues with code generation, proving, and verification — first of all ensure you have the correct package versions.
+2. **Install Noir and Aztec packages:**  
+   ```sh
+   make install-noir
+   make install-barretenberg
+   ```
 
-## Tutorial
+3. **Install Starknet Toolkit:**  
+   ```sh
+   make install-starknet
+   ```
 
-This repo is organized in layers: each app iteration is a new git branch.  
+4. **Install Devnet (Local Starknet chain):**  
+   ```sh
+   make install-devnet
+   ```
 
-Follow the steps and checkout the necessary branch:
-1. [`master`](https://github.com/m-kus/scaffold-garaga/tree/master) — in-browser proof generation and stateless proof verification in devnet
-2. [`1-app-logic`](https://github.com/m-kus/scaffold-garaga/tree/1-app-logic) — more involved Noir circuit logic
-3. [`2-app-state`](https://github.com/m-kus/scaffold-garaga/tree/2-app-state) — extend onchain part with a storage for nullifiers
-4. [`3-testnet`](https://github.com/m-kus/scaffold-garaga/tree/3-testnet) — deploy to public Starknet testnet and interact via wallet
+5. **Install Garaga:**  
+   (Optional: Set up a Python virtual environment)  
+   ```sh
+   python3.10 -m venv garaga-venv && source garaga-venv/bin/activate
+   make install-garaga
+   ```
 
-## Run app
+6. **Install Node Modules:**  
+   ```sh
+   npm install -D vite
+   npm install
+   ```
 
-First of all we need to build our Noir circuit:
+## Building and Running
 
-```sh
-make build-circuit
-```
+1. **Build the Noir Circuit:**  
+   ```sh
+   make build-circuit
+   ```
 
-Sample inputs are already provided in `Prover.toml`, execute to generate witness:
+2. **Generate a Witness (using sample inputs provided in `Prover.toml`):**  
+   ```sh
+   make exec-circuit
+   ```
 
-```sh
-make exec-circuit
-```
+3. **Generate the Verification Key:**  
+   ```sh
+   make gen-vk
+   ```
 
-Generate verification key:
+4. **Generate the Verifier Contract (Cairo) using Garaga:**  
+   ```sh
+   make gen-verifier
+   ```
 
-```sh
-make gen-vk
-```
+5. **Start the Local Development Network (in a separate terminal):**  
+   ```sh
+   make devnet
+   ```
 
-Now we can generate the verifier contract in Cairo using Garaga:
+6. **Initialize the Deployment Account:**  
+   ```sh
+   make accounts-file
+   ```
 
-```sh
-make gen-verifier
-```
+7. **Declare the Verifier Contract:**  
+   ```sh
+   make declare-verifier
+   ```
 
-Let's start our local development network in other terminal instance:
+8. **Deploy the Verifier Contract:**  
+   ```sh
+   make deploy-verifier
+   ```
 
-```sh
-make devnet
-```
+9. **Copy Necessary Artifacts:**  
+   ```sh
+   make artifacts
+   ```
 
-You now need to start a new terminal window. Initialize the account we will be using for deployment:
+10. **Run the App:**
+    - **Update the Contract Address:**  
+      Modify `App.tsx` with the correct contract address.
+    - **Build the App:**  
+      ```sh
+      bun run build
+      ```
+    - **Start the App:**  
+      ```sh
+      bun run dev
+      ```
 
-```sh
-make accounts-file
-```
+## Acknowledgements
 
-First we need to declare out contract ("upload" contract code):
-
-```sh
-make declare-verifier
-```
-
-Now we can instantiate the contract class we obtained (you might need to update the command in Makefile):
-
-```sh
-make deploy-verifier
-```
-
-Great! Now let's copy necessary artifacts:
-
-```sh
-make artifacts
-```
-
-Prepare the app and its requirements so you can run it. Go to the `app` folder and:
-1. Update the contract address in the app code (change App.tsx). 
-1. Make sure you have `tsc` installed. If not, you can install it with `bun add -d typescript@next`.
-1. Install vite with `npm install -D vite`
-1. Install packages wit `npm i`
-1. Build the app with `bun run build`
-1. Finally we can run the app: `bun run dev`
-
-## Useful links
-
-- Noir quickstart https://noir-lang.org/docs/getting_started/quick_start
-- Garaga docs https://garaga.gitbook.io/garaga/deploy-your-snark-verifier-on-starknet/noir
-- Starknet.js docs https://starknetjs.com/docs/guides/intro
-- Starknet quickstart https://docs.starknet.io/quick-start/overview/
-- Sncast 101 https://foundry-rs.github.io/starknet-foundry/starknet/101.html
-- Cairo book https://book.cairo-lang.org/
+This project was forked from the template repository [scaffold-garaga](https://github.com/m-kus/scaffold-garaga). Thanks to the original authors for laying the foundation that made StarkComply possible.
