@@ -10,6 +10,8 @@ The project utilizes the following building blocks:
 
 This project can be utilized for creating tokens that require privacy-preserving compliance (a CBDC, for example).
 
+This project was created in [NoirHack hackathon](https://www.noirhack.com/).
+
 ## Usage flow
 
 A typical flow works like this:
