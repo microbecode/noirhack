@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import './App.css'
-import { ProofState, ProofStateData } from './types'
+import { ProofStateData } from './types'
 import { Noir } from "@noir-lang/noir_js";
 import { UltraHonkBackend } from "@aztec/bb.js";
 import { flattenFieldsAsArray } from "./helpers/proof";
@@ -17,6 +17,16 @@ import initACVM from "@noir-lang/acvm_js";
 import acvm from "@noir-lang/acvm_js/web/acvm_js_bg.wasm?url";
 import noirc from "@noir-lang/noirc_abi/web/noirc_abi_wasm_bg.wasm?url";
 
+export enum ProofState {
+  Initial = "Initial",
+  GeneratingWitness = "GeneratingWitness",
+  GeneratingProof = "GeneratingProof",
+  PreparingCalldata = "PreparingCalldata",
+  ConnectingWallet = "ConnectingWallet",
+  SendingTransaction = "SendingTransaction",
+  ProofVerified = "ProofVerified",
+}
+
 const REGISTRY_ADDRESS = "0x04f46cf0db60007c365ac1852f6bccada01e537934bf468613304c63bb46d66d";
 const ERC20_ADDRESS = "0x024d771c6ea9325b5d50361deafa238873b8e379099a79affe52bf2467b776ae";
 /// Who should get whitelisted and receive tokens
@@ -29,26 +39,22 @@ const PROVIDER_URL = "http://localhost:5050/rpc"; // https://free-rpc.nethermind
 
 function App() {
   const [proofState, setProofState] = useState<ProofStateData>({
-    state: ProofState.Initial
+    state: ProofState.Initial,
   });
   const [vk, setVk] = useState<Uint8Array | null>(null);
-  // Use a ref to reliably track the current state across asynchronous operations
   const currentStateRef = useRef<ProofState>(ProofState.Initial);
   const [secretKey, setSecretKey] = useState<bigint>(ACC_ADDRESS_NUM);
   const [inputValue, setInputValue] = useState<number>(10);
 
-  // Initialize WASM on component mount
   useEffect(() => {
     const initWasm = async () => {
       try {
-        // This might have already been initialized in main.tsx,
-        // but we're adding it here as a fallback
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           await Promise.all([initACVM(fetch(acvm)), initNoirC(fetch(noirc))]);
-          console.log('WASM initialization in App component complete');
+          console.log("WASM initialization in App component complete");
         }
       } catch (error) {
-        console.error('Failed to initialize WASM in App component:', error);
+        console.error("Failed to initialize WASM in App component:", error);
       }
     };
 
@@ -57,9 +63,9 @@ function App() {
       const arrayBuffer = await response.arrayBuffer();
       const binaryData = new Uint8Array(arrayBuffer);
       setVk(binaryData);
-      console.log('Loaded verifying key:', binaryData);
+      console.log("Loaded verifying key:", binaryData);
     };
-    
+
     initWasm();
     loadVk();
   }, []);
@@ -97,8 +103,12 @@ function App() {
   };
 
   const updateState = (newState: ProofState) => {
+    console.log("Updating state to:", newState);
     currentStateRef.current = newState;
-    setProofState({ state: newState, error: undefined });
+    setProofState((prevState) => ({
+      ...prevState,
+      state: newState,
+    }));
   };
 
   const transfer = async () => {
@@ -121,18 +131,6 @@ function App() {
       updateState(ProofState.GeneratingWitness);
       
       await init();
-
-      // Use input values from state
-/*       const inputs = {
-        secret_key: secretKey,
-        input: inputValue,
-        public_key: poseidonHashBN254(BigInt(secretKey), BigInt(secretKey)).toString(),
-        nullifier: poseidonHashBN254(BigInt(secretKey), BigInt(inputValue)).toString()
-      };
-
-      // Generate witness
-      let noir = new Noir({ bytecode, abi: abi as any });
-      let execResult = await noir.execute(inputs); */
 
       const input = { x: 5, y: RECEIVER_ADDRESS };
 
@@ -172,7 +170,7 @@ function App() {
       
       const account = new Account(provider, ACC_ADDRESS, PRIV_KEY);
 
-/*       const selectedWalletSWO = await connect();
+      /*       const selectedWalletSWO = await connect();
       if (!selectedWalletSWO) {
         throw new Error('No wallet connected');
       }
@@ -199,104 +197,59 @@ function App() {
     }
   };
 
-  const renderStateIndicator = (state: ProofState, current: ProofState) => {
-    let status = 'pending';
-    
-    // If this stage is current with an error, show error state
-    if (current === state && proofState.error) {
-      status = 'error';
-    } 
-    // If this is the current stage, show active state
-    else if (current === state) {
-      status = 'active';
-    } 
-    // If we're past this stage, mark it completed
-    else if (getStateIndex(current) > getStateIndex(state)) {
-      status = 'completed';
-    }
-    
+  const renderStateIndicator = (current: ProofState) => {
+    const states = [
+      { id: ProofState.Initial, label: "Start", icon: "🟢" },
+      { id: ProofState.GeneratingWitness, label: "Witness", icon: "🔍" },
+      { id: ProofState.GeneratingProof, label: "Proof", icon: "📜" },
+      { id: ProofState.PreparingCalldata, label: "Calldata", icon: "📦" },
+      { id: ProofState.ConnectingWallet, label: "Wallet", icon: "🔗" },
+      { id: ProofState.SendingTransaction, label: "Transaction", icon: "🚀" },
+      { id: ProofState.ProofVerified, label: "Verified", icon: "✅" },
+    ];
+
+    const currentIndex = states.findIndex((state) => state.id === current);
+
     return (
-      <div className={`state-indicator ${status}`}>
-        <div className="state-dot"></div>
-        <div className="state-label">{state}</div>
+      <div className="compact-timeline">
+        {states.map((state, index) => {
+          const isActive = index === currentIndex;
+          const isCompleted = index < currentIndex;
+
+          return (
+            <div
+              key={state.id}
+              className={`compact-step ${isActive ? "active" : ""} ${
+                isCompleted ? "completed" : ""
+              }`}
+            >
+              <div className="compact-icon">{state.icon}</div>
+              <div className="compact-label">{state.label}</div>
+            </div>
+          );
+        })}
       </div>
     );
   };
 
-  const getStateIndex = (state: ProofState): number => {
-    const states = [
-      ProofState.Initial,
-      ProofState.GeneratingWitness,
-      ProofState.GeneratingProof,
-      ProofState.PreparingCalldata,
-      ProofState.ConnectingWallet,
-      ProofState.SendingTransaction,
-      ProofState.ProofVerified
-    ];
-    
-    return states.indexOf(state);
-  };
-
   return (
     <div className="container">
-      <h1>Noir Proof Generation & Starknet Verification</h1>
-      
-      <div className="state-machine">
-        <div className="input-section">
-          <div className="input-group">
-            <label htmlFor="secret-key">Secret Key:</label>
-            <input 
-              id="secret-key"
-              type="text" 
-              value={secretKey} 
-              onChange={(e) => setSecretKey(parseInt(e.target.value) || 0)} 
-              min="0"
-              disabled={proofState.state !== ProofState.Initial}
-            />
-          </div>
-          <div className="input-group">
-            <label htmlFor="input-value">Input:</label>
-            <input 
-              id="input-value"
-              type="text" 
-              value={inputValue} 
-              onChange={(e) => setInputValue(parseInt(e.target.value) || 0)} 
-              min="0"
-/*               value={inputY} 
-              onChange={(e) => {
-                const value = parseInt(e.target.value);
-                setInputY(isNaN(value) ? 0 : value);
-              }}  */
-              disabled={proofState.state !== ProofState.Initial}
-            />
-          </div>
-        </div>
-        
-        {renderStateIndicator(ProofState.GeneratingWitness, proofState.state)}
-        {renderStateIndicator(ProofState.GeneratingProof, proofState.state)}
-        {renderStateIndicator(ProofState.PreparingCalldata, proofState.state)}
-        {renderStateIndicator(ProofState.ConnectingWallet, proofState.state)}
-        {renderStateIndicator(ProofState.SendingTransaction, proofState.state)}
+      <h1 className="title">StarkComply</h1>
+
+      <div className="status-indicator">
+        {renderStateIndicator(proofState.state)}
       </div>
-      
-      {proofState.error && (
-        <div className="error-message">
-          Error at stage '{proofState.state}': {proofState.error}
-        </div>
-      )}
-      
+
       <div className="controls">
-        {proofState.state === ProofState.Initial && !proofState.error && (
-          <button className="primary-button" onClick={startProcess}>Start</button>
-        )}
-        
-        {(proofState.error || proofState.state === ProofState.ProofVerified) && (
-          <button className="reset-button" onClick={resetState}>Reset</button>
-        )}
-        <button className="reset-button" onClick={transfer}>Transfer</button>
+        <button className="primary-button" onClick={startProcess}>
+          Issue Proof
+        </button>
+        <button className="secondary-button" onClick={transfer}>
+          Mint Tokens
+        </button>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
