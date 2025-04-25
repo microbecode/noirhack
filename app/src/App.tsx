@@ -19,7 +19,8 @@ import noirc from "@noir-lang/noirc_abi/web/noirc_abi_wasm_bg.wasm?url";
 
 const REGISTRY_ADDRESS = "0x04f46cf0db60007c365ac1852f6bccada01e537934bf468613304c63bb46d66d";
 const ERC20_ADDRESS = "0x024d771c6ea9325b5d50361deafa238873b8e379099a79affe52bf2467b776ae";
-const VERIFIER_ADDRESS = "0x04f9797572084608b678693928e646ae23a95d05af8a2e282e2203e4e14c26c0";
+/// Who should get whitelisted and receive tokens
+const RECEIVER_ADDRESS = "0x123";
 const PRIV_KEY = "0x0000000000000000000000000000000071d7bb07b9a64f6f78ac4c816aff4da9"; // First from devnet accounts
 const ACC_ADDRESS = "0x064b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691"; // first from devnet accounts
 const ACC_ADDRESS_NUM = 2846891009026995430665703316224827616914889274105712248413538305735679628945n;
@@ -108,7 +109,7 @@ function App() {
       const erc20Contract = new Contract(erc20Abi, ERC20_ADDRESS, provider);
       erc20Contract.connect(account);
 
-      const res = await erc20Contract.mint(VERIFIER_ADDRESS, 5);
+      const res = await erc20Contract.mint(RECEIVER_ADDRESS, 5);
       let receipt = await provider.waitForTransaction(res.transaction_hash); 
       
       console.log("invoke res", res, receipt);
@@ -133,7 +134,7 @@ function App() {
       let noir = new Noir({ bytecode, abi: abi as any });
       let execResult = await noir.execute(inputs); */
 
-      const input = { x: 5, y: VERIFIER_ADDRESS };
+      const input = { x: 5, y: RECEIVER_ADDRESS };
 
       console.log("input", input);
       
@@ -181,24 +182,16 @@ function App() {
       );
       console.log(myWalletAccount); 
       // Send transaction
-      updateState(ProofState.SendingTransaction);
+      updateState(ProofState.SendingTransaction);*/
 
-      const contractAddress = CONTRACT_ADDRESS;*/
-//      const verifierContract = new Contract(verifierAbi, VERIFIER_ADDRESS, myWalletAccount);
-      const verifierContract = new Contract(verifierAbi, VERIFIER_ADDRESS, provider);
       const mainContract = new Contract(registryAbi, REGISTRY_ADDRESS, provider);
       mainContract.connect(account);
       console.log("before ver");
-      // Check verification
-      //const res = await verifierContract.verify_ultra_keccak_honk_proof(callData.slice(1));
-      //console.log(res);
 
       const res = await mainContract.verify_to_whitelist(callData); // keep the number of elements to pass to the verifier library call
       let receipt = await provider.waitForTransaction(res.transaction_hash); 
       
       console.log("invoke res", res, receipt);
-
-      
 
       updateState(ProofState.ProofVerified);
     } catch (error) {

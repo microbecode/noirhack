@@ -61,6 +61,8 @@ mod Erc20 {
           recipient: ContractAddress,
           amount: u256
         ) {
+            // Make sure the recipient is whitelisted
+
             let mut contract_state = ERC20Component::HasComponent::get_contract_mut(ref self);
 
             let registry_dispatcher = IRegistryDispatcher { contract_address: contract_state.registry.read() };
@@ -74,8 +76,6 @@ mod Erc20 {
           from: ContractAddress,
           recipient: ContractAddress,
           amount: u256
-        ) {
-          // Some additional behavior after the transfer
-        }
+        ) { }
       }
 }
