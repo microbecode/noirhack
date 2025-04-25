@@ -14,8 +14,7 @@ html, body {
   width: 100%;
   min-height: 100vh;
   font-family: 'Roboto', sans-serif;
-  background: linear-gradient(135deg, #283845, #4b6584),
-    url("https://www.transparenttextures.com/patterns/asfalt-light.png");
+  background: url("noir-background.jpg");
   background-size: cover;
   text-align: center;
 }
