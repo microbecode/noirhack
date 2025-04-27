@@ -1,7 +1,9 @@
 console.log("identityService.ts: Top of file executing.");
 
 import { Resolver, DIDResolver, DIDResolutionResult, DIDDocument, VerificationMethod } from 'did-resolver';
-import { SignJWT, exportJWK, JWK, compactVerify, createRemoteJWKSet, importJWK } from 'jose';
+// Use static jose imports again
+import { SignJWT, importJWK, JWK } from 'jose';
+import type { JWK as JWKType } from 'jose'; // Keep type import separate if needed
 import { createHash } from 'node:crypto';
 import { webcrypto } from 'node:crypto';
 import * as fs from 'node:fs';
@@ -33,7 +35,6 @@ const didDocumentPath = path.join(configDir, 'issuer.did.json'); // Path to DID 
 // Initialize with placeholders, will be overwritten by config
 let issuerDid: string | null = null; 
 let issuerKid: string | null = null;
-let issuerPrivateKeyPromise: Promise<CryptoKey>;
 
 // Load DID Document first to get issuerDid and issuerKid
 try {
@@ -61,77 +62,46 @@ try {
 } catch (error) {
     console.error(`Failed to load or parse issuer DID document from ${didDocumentPath}:`, error);
     // If DID doc fails, we can't proceed reliably with key loading matching
-    issuerPrivateKeyPromise = Promise.reject(new Error(`DID document loading failed: ${error}`));
-    // Rethrow or handle appropriately - perhaps exit if issuer DID is critical
     throw new Error("Cannot proceed without valid issuer DID document.");
 }
 
-// Now load the Private Key, using the loaded issuerKid for potential checks
+// Reset key loading logic (original might have been simpler without dynamic import)
+let issuerPrivateKeyPromise: Promise<CryptoKey>;
 try {
-    if (!issuerKid) { // This check helps type inference later
+    if (!issuerKid) { 
         throw new Error("Cannot load private key without a valid issuerKid from DID document.");
     }
     console.log(`Reading private key from: ${privateKeyPath}`);
     const privateJwkString = fs.readFileSync(privateKeyPath, 'utf-8');
-    console.log("Private key file read successfully.");
-    const loadedPrivateJwk: JWK | null = JSON.parse(privateJwkString);
-    console.log("Private key JSON parsed successfully.");
-
+    const loadedPrivateJwk: JWKType | null = JSON.parse(privateJwkString);
+    
     if (!loadedPrivateJwk) {
         throw new Error("Parsed Private JWK is null or invalid.");
     }
-    
-    // Check if JWK kid matches the one from the DID document
     if (loadedPrivateJwk.kid && loadedPrivateJwk.kid !== issuerKid) {
         console.warn(`JWK kid (${loadedPrivateJwk.kid}) does not match kid from DID document (${issuerKid}). Ensure consistency.`);
-        // Optionally, you could throw an error here if they MUST match
-        // issuerKid = loadedPrivateJwk.kid; // Or decide which one takes precedence
     }
-    // If JWK has no kid, assign the one from DID doc.
     if (!loadedPrivateJwk.kid) {
-        console.log(`Assigning kid (${issuerKid}) from DID document to loaded JWK.`);
-        loadedPrivateJwk.kid = issuerKid; // issuerKid is non-null here due to the check above
+        loadedPrivateJwk.kid = issuerKid; 
     }
 
     console.log("Attempting to import RSA JWK asynchronously...");
+    // Use static function
     issuerPrivateKeyPromise = importJWK(loadedPrivateJwk, 'RS256') as Promise<CryptoKey>;
-    console.log("importJWK called, promise obtained.");
-    
     issuerPrivateKeyPromise.then(
         (resolvedKey) => console.log("Issuer private key import promise RESOLVED.", resolvedKey ? 'Key exists' : 'Key is null/undefined'),
         (rejectReason) => console.error("Issuer private key import promise REJECTED:", rejectReason)
     );
-    console.log("Attached .then/.catch handlers to the import promise.");
 
 } catch (error) {
-  console.error(`Failed to load or parse issuer private key from ${privateKeyPath}:`, error);
-  // Set promise to reject if loading/parsing failed
-  issuerPrivateKeyPromise = Promise.reject(new Error(`Private key loading failed: ${error}`)); 
+    console.error(`Failed to load or parse issuer private key from ${privateKeyPath}:`, error);
+    issuerPrivateKeyPromise = Promise.reject(new Error(`Private key loading failed: ${error}`)); 
 }
 
 // Function to get the loaded private key (awaiting the promise)
 async function getPrivateKey(): Promise<CryptoKey> {
-    // Check if the promise was successfully initialized
-    if (!issuerPrivateKeyPromise) {
-        console.error("getPrivateKey: Private key promise was not initialized!");
-        throw new Error("Private key promise was not initialized.");
-    }
-    console.log("getPrivateKey: Awaiting private key promise...");
-    try {
-        // Await the promise - it will either resolve to the key or reject with an error
-        const key = await issuerPrivateKeyPromise;
-        console.log("getPrivateKey: Private key promise resolved successfully.");
-        if (!key) {
-            console.error("getPrivateKey: Resolved key is null or undefined!");
-            throw new Error("Loaded private key is invalid after import.");
-        }
-        console.log("getPrivateKey: Private key ready.");
-        return key;
-    } catch (err) {
-        console.error("getPrivateKey: Error awaiting/resolving private key promise:", err);
-        // Re-throw a more specific error if needed, or the original error
-        throw new Error(`Failed to load private key: ${err}`); 
-    }
+    // Original logic to await the promise
+    return issuerPrivateKeyPromise;
 }
 
 // --- Standard JWT VC Issuance Setup ---
@@ -139,6 +109,8 @@ async function getPrivateKey(): Promise<CryptoKey> {
 // Function to issue a new Identity Credential (Standard JWT)
 async function issueIdentityCredential(subjectDid: string, nationality: string) {
   console.log("issueIdentityCredential (Standard JWT): Called."); 
+  // Remove dynamic import
+  // const jose = await import('jose');
 
   if (typeof issuerDid !== 'string' || typeof issuerKid !== 'string') {
     throw new Error("Issuer DID or KID is not available for credential issuance.");
@@ -181,6 +153,7 @@ async function issueIdentityCredential(subjectDid: string, nationality: string) 
 
     // 3. Issue Credential using jose.SignJWT
     console.log("issueIdentityCredential: BEFORE await new SignJWT(...).sign(...) using RS256");
+    // Use static class
     const jwt = await new SignJWT(claims)
       .setProtectedHeader(protectedHeader)
       // No setIssuedAt() needed as 'iat' is already in claims

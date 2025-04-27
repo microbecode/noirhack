@@ -1,3 +1,4 @@
+// Use static jose imports again
 import { SignJWT, importJWK } from 'jose';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -36,7 +37,7 @@ async function loadIssuerPrivateKey(keyPath: string): Promise<CryptoKey> {
 
     // Ensure the key is importable (has necessary components)
     // TODO: Add more robust validation if needed based on JWK structure
-    const importedKey = await importJWK(privateJwk, privateJwk.alg || 'RS256'); // Provide alg fallback just in case
+    const importedKey = await importJWK(privateJwk, privateJwk.alg || 'RS256'); 
 
     // The jose library handles the key type internally for SignJWT.
     // The instanceof check fails in Node.js environments where CryptoKey isn't global.
@@ -71,12 +72,12 @@ async function createJwtVC() {
             sub: SUBJECT_DID,
             nbf: now,
             exp: exp,
+            nationality: NATIONALITY,
             vc: {
                 "@context": ["https://www.w3.org/2018/credentials/v1"],
                 type: VC_TYPE,
                 credentialSubject: {
-                    id: SUBJECT_DID,
-                    nationality: NATIONALITY
+                    id: SUBJECT_DID
                 }
             }
         };

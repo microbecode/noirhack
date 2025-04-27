@@ -22,7 +22,7 @@
     "@starknet-io/get-starknet": "^4.0.7",
     "did-resolver": "^4.1.0",
     "garaga": "=0.17.0",
-    "jose": "^6.0.10",
+    "jose": "^4.15.5",
     "noir-jwt": "^0.4.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -10,7 +10,7 @@
       "controller": "did:web:gov.example",
       "publicKeyJwk": {
         "kty": "RSA",
-        "n": "7Hlllm_CC_uxFQm7N2JFJe8BUH1mIdPE9rB-lFRaqMGVSqdgQ5Q4QyVAt6McciAu2t44PYHyFz3CVyeKu-wlcnoQjnAoMyMaM1wdYcMc-eAYhDMhNFB-lDZ3O5hz2L6AoKuQbJmoLd_s1-y1HbOJYAsiUL_5W6Sae39evcAGWhB_TBW0J7qPp3EHw3d5C54YMpMXN1EE-JvssFRzNTcnBn7-_mkLonExBMrKwsULggVs7DYk9at1rZHAAO6Vphtby_ZlZpcLAhFPY9_fNVUq7cdyIUkpZ-YWy1AfQeHMvUSiWCpPYTLuYbJXoNtU8gWNJcpmqNWqBxccrlJIiN5b0w",
+        "n": "6tYSxsVPI98Bggv1nDE_HZoYzo60G-jiUMDWRirODYB9i7KLUPeAW0eE_W0KqDgcowT8jix4mjVFmpwwVKULPnC05eEIL9RPYz9o2doVr5G-B1aKLtjmKQVK7FitbzG2E6k1QR_cp57ud4rKAP2j0PEnPgGmXV9cmu5U2sMZVkgr-HaSx0ZInLYWFbSpKGSs0PYNiIYNcY1asB4HM8kueBlKsdTrcufjnHcjwImOZUZe3NrDWXdJ_DyYYIJ0Pb9RT1ggAJwmJU-GDCiBLKo9BVenorvLWnIVsEQyzX06FqcqKhA5JqQw2fQiQQlTc2kYwOw1NZpvDXWDCJCxMroZlQ",
         "e": "AQAB",
         "kid": "did:web:gov.example#key-1"
       }

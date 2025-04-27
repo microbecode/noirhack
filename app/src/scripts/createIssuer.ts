@@ -1,3 +1,4 @@
+// Use static jose imports again
 import { generateKeyPair, exportJWK } from 'jose';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -35,6 +36,7 @@ async function createIssuerConfig() {
 
     // 2. Generate Key Pair
     console.log("Generating RS256 key pair...");
+    // Use static functions
     const { publicKey, privateKey } = await generateKeyPair('RS256', { extractable: true });
     console.log("Key pair generated.");
 
