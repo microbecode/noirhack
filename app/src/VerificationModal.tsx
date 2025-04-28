@@ -12,7 +12,6 @@ interface VerificationModalProps {
   credentialData: CredentialDataType; // Add credential data prop
   issueExampleCredential: () => Promise<void>; // Add issuer prop
   handleVerificationApproval: () => void; // Add approval prop
-  startVerification: (credentialData: any) => Promise<void>; // Keep this for now?
   proofState: ProofStateData;
   verificationApproved: boolean; // Add approval status prop
   // Remove old/unused props
@@ -30,7 +29,6 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
   credentialData, // Add
   issueExampleCredential, // Add
   handleVerificationApproval, // Add
-  startVerification, // Keep?
   proofState,
   verificationApproved, // Add
   // Remove old/unused props from destructuring
