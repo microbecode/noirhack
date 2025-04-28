@@ -418,7 +418,6 @@ function App() {
         credentialData={credentialData}
         issueExampleCredential={issueExampleCredential}
         handleVerificationApproval={handleVerificationApproval}
-        startVerification={startProcess}
         proofState={proofState}
         verificationApproved={verificationApproved}
       />
