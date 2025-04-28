@@ -68,8 +68,8 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
         return (
           <div className="wallet-section empty">
             <p>Your Identity Wallet has no Nationality Credential.</p>
-            <button onClick={issueExampleCredential}>
-              Issue Example Finnish Credential
+            <button className="primary-button" onClick={issueExampleCredential}>
+              Issue Example Credential
             </button>
           </div>
         );
@@ -101,10 +101,10 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
               StarkComply requests permission to use this credential to verify your nationality and whitelist your address.
             </p>
             <div className="approval-buttons">
-              <button onClick={handleVerificationApproval} className="approve-button">
+              <button onClick={handleVerificationApproval} className="primary-button">
                 Approve
               </button>
-              <button onClick={onClose} className="deny-button">
+              <button onClick={onClose} className="secondary-button">
                 Deny
               </button>
             </div>
