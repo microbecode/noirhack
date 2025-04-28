@@ -32,8 +32,8 @@ const USE_LOCAL = false;
 /// Who should get whitelisted and receive tokens
 const RECEIVER_ADDRESS = "0x123";
 
-const SEPOLIA_REGISTRY_ADDRESS = "0x0430b385df09d7d23184a009b6fb92ded44f13078576fc4b81eb0c969fa28bfc";
-const SEPOLIA_ERC20_ADDRESS = "0x037e084e7ec576ae0a7696b742d26555bcbc450763648b07091a9e2766638f4e";
+const SEPOLIA_REGISTRY_ADDRESS = "0x0540eeb8cff58b6696cfd192f9afbbdb406fcea24825157390d29c9300001f15";
+const SEPOLIA_ERC20_ADDRESS = "0x0075d9f9be947e74eb96e9db631b54d6593efcd77e355cbda6bf34ab351ed24f";
 const SEPOLIA_PROVIDER_URL = "https://free-rpc.nethermind.io/sepolia-juno/v0_8";
 
 const LOCAL_REGISTRY_ADDRESS = "0x0430b385df09d7d23184a009b6fb92ded44f13078576fc4b81eb0c969fa28bfc";
@@ -118,8 +118,6 @@ function App() {
   };
 
   const transfer = async () => {
-    
-
     let erc20Contract : Contract;
     let provider : RpcProvider;
 
@@ -140,8 +138,6 @@ function App() {
           selectedWalletSWO
         );
         console.log(myWalletAccount); 
-        // Send transaction
-        updateState(ProofState.SendingTransaction);
   
         erc20Contract = new Contract(erc20Abi, SEPOLIA_ERC20_ADDRESS, provider);
         erc20Contract.connect(myWalletAccount);
@@ -150,7 +146,40 @@ function App() {
       const res = await erc20Contract.mint(RECEIVER_ADDRESS, 5);
       const receipt = await provider.waitForTransaction(res.transaction_hash); 
       
-      console.log("invoke res", res, receipt);
+      console.log("Mint ready", res, receipt);
+  }
+
+  const remove = async () => {
+    let mainContract : Contract;
+    let provider : RpcProvider;
+
+    if (USE_LOCAL) {
+      provider = new RpcProvider({ nodeUrl: LOCAL_PROVIDER_URL });
+
+      mainContract = new Contract(registryAbi, LOCAL_REGISTRY_ADDRESS, provider);
+      const account = new Account(provider, LOCAL_ACC_ADDRESS, LOCAL_PRIV_KEY);
+      mainContract.connect(account);
+    }
+    else {
+      provider = new RpcProvider({ nodeUrl: SEPOLIA_PROVIDER_URL });
+      const selectedWalletSWO = await connect();
+      if (!selectedWalletSWO) {
+        throw new Error('No wallet connected');
+      }
+      const myWalletAccount = await WalletAccount.connect(
+        provider,
+        selectedWalletSWO
+      );
+      console.log(myWalletAccount);
+
+      mainContract = new Contract(registryAbi, SEPOLIA_REGISTRY_ADDRESS, provider);
+      mainContract.connect(myWalletAccount);
+    }
+
+    const res = await mainContract.remove_from_whitelist(RECEIVER_ADDRESS);
+    const receipt = await provider.waitForTransaction(res.transaction_hash); 
+
+    console.log("Remove ready", res, receipt);
   }
 
   const startProcess = async () => {
@@ -226,7 +255,7 @@ function App() {
       const res = await mainContract.verify_to_whitelist(callData); // keep the number of elements to pass to the verifier library call
       const receipt = await provider.waitForTransaction(res.transaction_hash); 
       
-      console.log("invoke res", res, receipt);
+      console.log("Proof ready", res, receipt);
 
       updateState(ProofState.ProofVerified);
     } catch (error) {
@@ -283,6 +312,9 @@ function App() {
         </button>
         <button className="secondary-button" onClick={transfer}>
           Mint Tokens
+        </button>
+        <button className="secondary-button" onClick={remove}>
+          Remove Address
         </button>
       </div>
     </div>
