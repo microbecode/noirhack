@@ -43,14 +43,12 @@ gen-vk:
 start_venv:
 	python3.10 -m venv garaga-venv && source garaga-venv/bin/activate
 
-# Call when changes to the registry contract
-redo-main: gen-verifier	build-verifier declare-verifier	declare-main
-
 gen-verifier:
 	cd contracts && garaga gen --system ultra_keccak_honk --vk ../circuit/target/vk --project-name verifier
 
-build-verifier:
+build-all:
 	cd contracts/verifier && scarb build
+	cd contracts && scarb build
 
 declare-verifier:
 	cd contracts && sncast --accounts-file accounts.json --account devnet0 declare --contract-name UltraKeccakHonkVerifier --url http://localhost:5050 --package verifier
@@ -81,3 +79,28 @@ artifacts:
 
 run-app:
 	cd app && bun run dev
+
+# Add private key and address with assets. Use either argent or braavos wallet
+# The wallet info will be stored in something like ~/.starknet_accounts/starknet_open_zeppelin_accounts.json
+import-account-sepolia:
+	cd contracts && sncast account import --type argent --silent --name acc-for-noirhack --address 0x1 --private-key 0x2
+
+declare-verifier-sepolia:
+	cd contracts && sncast --account acc-for-noirhack declare --contract-name UltraKeccakHonkVerifier --package verifier
+
+declare-main-sepolia:
+	cd contracts && sncast --account acc-for-noirhack declare --contract-name Registry --package main
+	cd contracts && sncast --account acc-for-noirhack declare --contract-name Erc20 --package main
+
+# Replace class-hash for verifier
+deploy-verifier-sepolia:
+	cd contracts && sncast --account acc-for-noirhack deploy --class-hash 0x040408b7c73092d7b26770ea4b72cf491234b94ccd9f4bd33545f5fd2f15b3e1
+
+# Replace class-hash for registry and argument: verifier's classhash
+deploy-registry-sepolia:
+	cd contracts && sncast --account acc-for-noirhack deploy --class-hash 0x050887b8afe7acab53bc80749da765102da7cf264cc85103570f2752ca4fc426 --arguments 0x040408b7c73092d7b26770ea4b72cf491234b94ccd9f4bd33545f5fd2f15b3e1
+
+# Replace class-hash and argument: registry's deployment address
+deploy-erc20-sepolia:
+	cd contracts && sncast --account acc-for-noirhack deploy --class-hash 0x0470d9def76aba5cd4b1f695ef88f80c0ac69451f1c99cb3e0b6970a1a14c211 --arguments 0x0540eeb8cff58b6696cfd192f9afbbdb406fcea24825157390d29c9300001f15
+

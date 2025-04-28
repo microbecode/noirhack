@@ -26,12 +26,23 @@ export enum ProofState {
   ProcessingJWT = "ProcessingJWT",
 }
 
-const REGISTRY_ADDRESS = "0x04f46cf0db60007c365ac1852f6bccada01e537934bf468613304c63bb46d66d";
-/// Who should get whitelisted and receive tokens
-const PRIV_KEY = "0x0000000000000000000000000000000071d7bb07b9a64f6f78ac4c816aff4da9"; // First from devnet accounts
-const ACC_ADDRESS = "0x064b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691"; // first from devnet accounts
 
-const PROVIDER_URL = "http://localhost:5050/rpc"; // https://free-rpc.nethermind.io/sepolia-juno/v0_8
+/// Whether to use local devnet or Sepolia
+const USE_LOCAL = false;
+/// Who should get whitelisted and receive tokens
+const RECEIVER_ADDRESS = "0x123";
+
+
+const SEPOLIA_REGISTRY_ADDRESS = "0x0540eeb8cff58b6696cfd192f9afbbdb406fcea24825157390d29c9300001f15";
+const SEPOLIA_ERC20_ADDRESS = "0x0075d9f9be947e74eb96e9db631b54d6593efcd77e355cbda6bf34ab351ed24f";
+const SEPOLIA_PROVIDER_URL = "https://free-rpc.nethermind.io/sepolia-juno/v0_8";
+
+const LOCAL_REGISTRY_ADDRESS = "0x0430b385df09d7d23184a009b6fb92ded44f13078576fc4b81eb0c969fa28bfc";
+const LOCAL_ERC20_ADDRESS = "0x037e084e7ec576ae0a7696b742d26555bcbc450763648b07091a9e2766638f4e";
+const LOCAL_PROVIDER_URL = "http://localhost:5050/rpc";
+const LOCAL_PRIV_KEY = "0x0000000000000000000000000000000071d7bb07b9a64f6f78ac4c816aff4da9"; // First from devnet accounts
+const LOCAL_ACC_ADDRESS = "0x064b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691"; // first from devnet accounts
+
 
 // --- Mock JWT Parsing ---
 // In a real app, use a library like jwt-decode or jose
@@ -68,17 +79,20 @@ const parseJwtForNationality = (jwt: string): { countryCode: string, receiverAdd
 // --- End Mock JWT Parsing ---
 
 function App() {
+
   const [proofState, setProofState] = useState<ProofStateData>({
     state: ProofState.Initial,
   });
   const [vk, setVk] = useState<Uint8Array | null>(null);
   const currentStateRef = useRef<ProofState>(ProofState.Initial);
+
   
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [walletState, setWalletState] = useState<'empty' | 'issuing' | 'has_credential' | 'error_issuing'>('empty');
   const [credentialData, setCredentialData] = useState<{ jwt: string, parsed: { countryCode: string, receiverAddress: string } } | null>(null);
   const [verificationApproved, setVerificationApproved] = useState<boolean>(false);
   const [isWhitelisted, setIsWhitelisted] = useState<boolean>(false); // Track whitelist status
+
 
   useEffect(() => {
     const initWasm = async () => {
@@ -150,6 +164,7 @@ function App() {
     }));
   };
 
+
   // --- Modal Handling Functions - Uncomment ---
   
   const openModal = () => {
@@ -201,6 +216,72 @@ function App() {
       setCredentialData({ jwt: mockJwt, parsed: parsedData });
       setWalletState('has_credential');
       console.log("Example credential issued and stored.");
+
+  const transfer = async () => {
+    let erc20Contract : Contract;
+    let provider : RpcProvider;
+
+      if (USE_LOCAL) {
+        provider = new RpcProvider({ nodeUrl: LOCAL_PROVIDER_URL });
+        const account = new Account(provider, LOCAL_ACC_ADDRESS, LOCAL_PRIV_KEY);
+        erc20Contract = new Contract(erc20Abi, LOCAL_ERC20_ADDRESS, provider);
+        erc20Contract.connect(account);
+      }
+      else {
+        provider = new RpcProvider({ nodeUrl: SEPOLIA_PROVIDER_URL });
+        const selectedWalletSWO = await connect();
+        if (!selectedWalletSWO) {
+          throw new Error('No wallet connected');
+        }
+        const myWalletAccount = await WalletAccount.connect(
+          provider,
+          selectedWalletSWO
+        );
+        console.log(myWalletAccount); 
+  
+        erc20Contract = new Contract(erc20Abi, SEPOLIA_ERC20_ADDRESS, provider);
+        erc20Contract.connect(myWalletAccount);
+      }
+
+      const res = await erc20Contract.mint(RECEIVER_ADDRESS, 5);
+      const receipt = await provider.waitForTransaction(res.transaction_hash); 
+      
+      console.log("Mint ready", res, receipt);
+  }
+
+  const remove = async () => {
+    let mainContract : Contract;
+    let provider : RpcProvider;
+
+    if (USE_LOCAL) {
+      provider = new RpcProvider({ nodeUrl: LOCAL_PROVIDER_URL });
+
+      mainContract = new Contract(registryAbi, LOCAL_REGISTRY_ADDRESS, provider);
+      const account = new Account(provider, LOCAL_ACC_ADDRESS, LOCAL_PRIV_KEY);
+      mainContract.connect(account);
+    }
+    else {
+      provider = new RpcProvider({ nodeUrl: SEPOLIA_PROVIDER_URL });
+      const selectedWalletSWO = await connect();
+      if (!selectedWalletSWO) {
+        throw new Error('No wallet connected');
+      }
+      const myWalletAccount = await WalletAccount.connect(
+        provider,
+        selectedWalletSWO
+      );
+      console.log(myWalletAccount);
+
+      mainContract = new Contract(registryAbi, SEPOLIA_REGISTRY_ADDRESS, provider);
+      mainContract.connect(myWalletAccount);
+    }
+
+    const res = await mainContract.remove_from_whitelist(RECEIVER_ADDRESS);
+    const receipt = await provider.waitForTransaction(res.transaction_hash); 
+
+    console.log("Remove ready", res, receipt);
+  }
+
 
     } catch (error) {
       console.error("Error simulating credential issuance:", error);
@@ -273,33 +354,45 @@ function App() {
       );
       console.log("Calldata prepared:", callData);
       
-      const provider = new RpcProvider({ nodeUrl: PROVIDER_URL });
-      const account = new Account(provider, ACC_ADDRESS, PRIV_KEY);
 
-      console.log("Using account:", account.address);
+      // Connect wallet
+      updateState(ProofState.ConnectingWallet);
+
+      let mainContract : Contract;
+      let provider : RpcProvider;
       
-      // Send transaction
-      updateState(ProofState.SendingTransaction);
+      if (USE_LOCAL) {
+        provider = new RpcProvider({ nodeUrl: LOCAL_PROVIDER_URL });
+        
 
-      const registryContract = new Contract(registryAbi, REGISTRY_ADDRESS, provider);
-      registryContract.connect(account);
-      console.log("Calling verify_to_whitelist on contract:", REGISTRY_ADDRESS);
-
-      const res = await registryContract.verify_to_whitelist(callData); 
-      console.log("Transaction submitted:", res.transaction_hash);
-      let receipt = await provider.waitForTransaction(res.transaction_hash); 
-      
-      console.log("Transaction receipt:", receipt);
-
-      if (receipt.isSuccess()) {
-          updateState(ProofState.ProofVerified);
-          setIsWhitelisted(true);
-          setTimeout(() => {
-             // closeModal();
-          }, 1500);
-      } else {
-          throw new Error(`Transaction failed. Hash: ${res.transaction_hash}`);
+        mainContract = new Contract(registryAbi, LOCAL_REGISTRY_ADDRESS, provider);
+        const account = new Account(provider, LOCAL_ACC_ADDRESS, LOCAL_PRIV_KEY);
+        mainContract.connect(account);
       }
+      else {
+        provider = new RpcProvider({ nodeUrl: SEPOLIA_PROVIDER_URL });
+        const selectedWalletSWO = await connect();
+        if (!selectedWalletSWO) {
+          throw new Error('No wallet connected');
+        }
+        const myWalletAccount = await WalletAccount.connect(
+          provider,
+          selectedWalletSWO
+        );
+        console.log(myWalletAccount);
+
+        // Send transaction
+        updateState(ProofState.SendingTransaction);
+
+        mainContract = new Contract(registryAbi, SEPOLIA_REGISTRY_ADDRESS, provider);
+        mainContract.connect(myWalletAccount);
+      }
+
+      const res = await mainContract.verify_to_whitelist(callData); // keep the number of elements to pass to the verifier library call
+      const receipt = await provider.waitForTransaction(res.transaction_hash); 
+      
+      console.log("Proof ready", res, receipt);
+
 
     } catch (error) {
       handleError(error);
@@ -318,6 +411,9 @@ function App() {
       <div className="controls">
         <button className="primary-button" onClick={openModal} disabled={isModalOpen || (proofState.state !== ProofState.Initial && proofState.state !== ProofState.ProofVerified)}>
           {isWhitelisted ? "Re-Verify" : "Verify Nationality & Whitelist"}
+        </button>
+        <button className="secondary-button" onClick={remove}>
+          Remove Address
         </button>
       </div>
 

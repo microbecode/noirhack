@@ -2,11 +2,8 @@
 mod Erc20 {
     use openzeppelin::token::erc20::{ERC20Component};
     use starknet::ContractAddress;
-    use starknet::storage::{
-        Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
-        StoragePointerWriteAccess,
-    };
-    use crate::registry::{ Registry, IRegistryDispatcher, IRegistryDispatcherTrait };
+    use starknet::storage::{ StoragePointerReadAccess, StoragePointerWriteAccess };
+    use crate::registry::{ IRegistryDispatcher, IRegistryDispatcherTrait };
 
     component!(path: ERC20Component, storage: erc20, event: ERC20Event);
 

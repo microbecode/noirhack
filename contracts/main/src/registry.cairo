@@ -4,6 +4,8 @@ use starknet::{ContractAddress};
 pub trait IRegistry<TContractState> {
     fn verify_to_whitelist(ref self: TContractState, full_proof_with_hints: Span<felt252>) -> bool;
     fn is_whitelisted(self: @TContractState, address: ContractAddress) -> bool;
+    // Remove an address from the whitelist. Temp hack.
+    fn remove_from_whitelist(ref self: TContractState, address: ContractAddress);
 }
 
 #[starknet::contract]
@@ -54,11 +56,6 @@ pub mod Registry {
             }
 
             self.whitelist.entry(address).write(true);
-
-            //let nullifier = *public_inputs[1];    
-            //assert(self.nullifiers.entry(nullifier).read() == false, 'Nullifier already used');    
-            //self.nullifiers.entry(nullifier).write(true);
-
             self.emit(AddedToWhitelist { Address: address });
 
             return true;
@@ -66,6 +63,12 @@ pub mod Registry {
 
         fn is_whitelisted(self: @ContractState, address: ContractAddress) -> bool {
             return self.whitelist.entry(address).read();
+        }
+
+        fn remove_from_whitelist(ref self: ContractState, address: ContractAddress) {
+            if self.whitelist.entry(address).read() {
+                self.whitelist.entry(address).write(false);
+            }            
         }
     }
 
