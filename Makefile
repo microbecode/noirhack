@@ -81,3 +81,27 @@ artifacts:
 
 run-app:
 	cd app && bun run dev
+
+# Add private key and address with assets. Use either argent or braavos wallet
+import-account-sepolia:
+	cd contracts && sncast account import --type argent --silent --name acc-for-noirhack --address 0x1 --private-key 0x2
+
+declare-verifier-sepolia:
+	cd contracts && sncast --account acc-for-noirhack declare --contract-name UltraKeccakHonkVerifier --package verifier
+
+declare-main-sepolia:
+	cd contracts && sncast --account acc-for-noirhack declare --contract-name Registry --package main
+	cd contracts && sncast --account acc-for-noirhack declare --contract-name Erc20 --package main
+
+deploy-verifier-sepolia:
+	# TODO: use class hash from the result of the `make declare-verifier` step
+	cd contracts && sncast --account acc-for-noirhack deploy --class-hash 0x040408b7c73092d7b26770ea4b72cf491234b94ccd9f4bd33545f5fd2f15b3e1
+
+# Replace class-hash and argument: verifier's classhash
+deploy-registry-sepolia:
+	cd contracts && sncast --account acc-for-noirhack deploy --class-hash 0x04b22abcd26748b40d1f5e9f4ca5455a2696261ef98eb1e1dc2c68a99ec1840b --arguments 0x040408b7c73092d7b26770ea4b72cf491234b94ccd9f4bd33545f5fd2f15b3e1
+
+# Replace class-hash and argument: registry's deployment address
+deploy-erc20-sepolia:
+	cd contracts && sncast --account acc-for-noirhack deploy --class-hash 0x0470d9def76aba5cd4b1f695ef88f80c0ac69451f1c99cb3e0b6970a1a14c211 --arguments 0x0430b385df09d7d23184a009b6fb92ded44f13078576fc4b81eb0c969fa28bfc
+
