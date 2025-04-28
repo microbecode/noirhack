@@ -2,8 +2,10 @@ fn main(x: Field, y: pub Field) {
     assert(x != y);
 }
 
+
 // use dep::jwt::{JWT}; // Import only JWT struct
 // // use std::println; // For debugging if needed
+
 
 // // Define constants globally with pub
 // pub global MAX_DATA_LENGTH: u32 = 440;

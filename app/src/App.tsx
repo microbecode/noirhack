@@ -29,10 +29,18 @@ export enum ProofState {
   ConnectingWallet = "ConnectingWallet",
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9877279b6bfc6019dda892708f8d8d383dbe71c1
 /// Whether to use local devnet or Sepolia
 const USE_LOCAL = false;
 /// Who should get whitelisted and receive tokens
 const RECEIVER_ADDRESS = "0x123";
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9877279b6bfc6019dda892708f8d8d383dbe71c1
 
 const SEPOLIA_REGISTRY_ADDRESS = "0x0540eeb8cff58b6696cfd192f9afbbdb406fcea24825157390d29c9300001f15";
 const SEPOLIA_ERC20_ADDRESS = "0x0075d9f9be947e74eb96e9db631b54d6593efcd77e355cbda6bf34ab351ed24f";
@@ -86,12 +94,20 @@ function App() {
   });
   const [vk, setVk] = useState<Uint8Array | null>(null);
   const currentStateRef = useRef<ProofState>(ProofState.Initial);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9877279b6bfc6019dda892708f8d8d383dbe71c1
   
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [walletState, setWalletState] = useState<'empty' | 'issuing' | 'has_credential' | 'error_issuing'>('empty');
   const [credentialData, setCredentialData] = useState<{ jwt: string, parsed: { countryCode: string, receiverAddress: string } } | null>(null);
   const [verificationApproved, setVerificationApproved] = useState<boolean>(false);
   const [isWhitelisted, setIsWhitelisted] = useState<boolean>(false); // Track whitelist status
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9877279b6bfc6019dda892708f8d8d383dbe71c1
 
   useEffect(() => {
     const initWasm = async () => {
@@ -163,6 +179,10 @@ function App() {
     }));
   };
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9877279b6bfc6019dda892708f8d8d383dbe71c1
   // --- Modal Handling Functions - Uncomment ---
   
   const openModal = () => {
@@ -208,13 +228,18 @@ function App() {
       const mockJwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXhhbXBsZToxMjMiLCJuYXRpb25hbGl0eSI6IkZJIn0.mockSignature";
       const parsedData = {
           countryCode: "246", // Finland
+<<<<<<< HEAD
           receiverAddress: RECEIVER_ADDRESS 
+=======
+          receiverAddress: ACC_ADDRESS 
+>>>>>>> 9877279b6bfc6019dda892708f8d8d383dbe71c1
       };
       
       setCredentialData({ jwt: mockJwt, parsed: parsedData });
       setWalletState('has_credential');
       console.log("Example credential issued and stored.");
 
+<<<<<<< HEAD
     } catch (error) {
       console.error("Error simulating credential issuance:", error);
       setWalletState('error_issuing');
@@ -222,6 +247,8 @@ function App() {
       // handleError("Failed to issue example credential.");
     }
   };
+=======
+>>>>>>> 9877279b6bfc6019dda892708f8d8d383dbe71c1
   const transfer = async () => {
     let erc20Contract : Contract;
     let provider : RpcProvider;
@@ -286,6 +313,18 @@ function App() {
 
     console.log("Remove ready", res, receipt);
   }
+<<<<<<< HEAD
+=======
+
+
+    } catch (error) {
+      console.error("Error simulating credential issuance:", error);
+      setWalletState('error_issuing');
+      // Optionally set an error message in proofState for display?
+      // handleError("Failed to issue example credential.");
+    }
+  };
+>>>>>>> 9877279b6bfc6019dda892708f8d8d383dbe71c1
 
   const handleVerificationApproval = () => {
     if (credentialData?.parsed) {
@@ -350,6 +389,10 @@ function App() {
       );
       console.log("Calldata prepared:", callData);
       
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9877279b6bfc6019dda892708f8d8d383dbe71c1
       // Connect wallet
       updateState(ProofState.ConnectingWallet);
 
@@ -387,6 +430,10 @@ function App() {
       const receipt = await provider.waitForTransaction(res.transaction_hash); 
       
       console.log("Proof ready", res, receipt);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9877279b6bfc6019dda892708f8d8d383dbe71c1
 
     } catch (error) {
       handleError(error);
