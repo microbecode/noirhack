@@ -2,8 +2,8 @@ use dep::jwt::{JWT}; // Import only JWT struct
 // use std::println; // For debugging if needed
 
 // Define constants globally with pub
-pub global MAX_DATA_LENGTH: u32 = 900;
-pub global MAX_CLAIM_LENGTH: u32 = 100; // Max length for nationality claim (adjust if needed)
+pub global MAX_DATA_LENGTH: u32 = 440;
+pub global MAX_CLAIM_LENGTH: u32 = 2; // Max length for nationality claim (adjust if needed)
 
 // Inputs matching the generated Prover.toml (using storage/len)
 fn main(
