@@ -37,7 +37,7 @@ const RECEIVER_ADDRESS = "0x123";
 
 
 const SEPOLIA_REGISTRY_ADDRESS = "0x0540eeb8cff58b6696cfd192f9afbbdb406fcea24825157390d29c9300001f15";
-const SEPOLIA_ERC20_ADDRESS = "0x0075d9f9be947e74eb96e9db631b54d6593efcd77e355cbda6bf34ab351ed24f";
+const SEPOLIA_ERC20_ADDRESS = "0x0603fcfabd24c4ce314fb524bbb6527ede5f6fd478d7471958f257a29b41146a";
 const SEPOLIA_PROVIDER_URL = "https://free-rpc.nethermind.io/sepolia-juno/v0_8";
 
 const LOCAL_REGISTRY_ADDRESS = "0x0430b385df09d7d23184a009b6fb92ded44f13078576fc4b81eb0c969fa28bfc";
@@ -292,8 +292,13 @@ function App() {
       await refreshTokenBalance();
   }
 
+  /// Removes:
+  /// - the connected address from the whitelist
+  /// - token balance for the connected address
+  /// Basically resets everything for that address
   const remove = async () => {
     let mainContract : Contract;
+    let erc20Contract : Contract;
     let provider : RpcProvider;
 
     if (USE_LOCAL) {
@@ -317,13 +322,19 @@ function App() {
 
       mainContract = new Contract(registryAbi, SEPOLIA_REGISTRY_ADDRESS, provider);
       mainContract.connect(myWalletAccount);
+      erc20Contract = new Contract(erc20Abi, SEPOLIA_ERC20_ADDRESS, provider);
+      erc20Contract.connect(myWalletAccount);
     }
 
-    const res = await mainContract.remove_from_whitelist(connectedAddress);
+    let res = await erc20Contract!.reset(connectedAddress);
+    await provider.waitForTransaction(res.transaction_hash); 
+
+    res = await mainContract.remove_from_whitelist(connectedAddress);
     const receipt = await provider.waitForTransaction(res.transaction_hash); 
 
     console.log("Remove ready", res, receipt);
     await refreshWhitelistStatus();
+    await refreshTokenBalance();
   }
 
   const connectWallet = async () => {

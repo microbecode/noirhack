@@ -4,6 +4,7 @@ mod Erc20 {
     use starknet::ContractAddress;
     use starknet::storage::{ StoragePointerReadAccess, StoragePointerWriteAccess };
     use crate::registry::{ IRegistryDispatcher, IRegistryDispatcherTrait };
+    use core::num::traits::{Zero};
 
     component!(path: ERC20Component, storage: erc20, event: ERC20Event);
 
@@ -43,12 +44,19 @@ mod Erc20 {
     #[generate_trait]
     #[abi(per_item)]
     impl ExternalImpl of ExternalTrait {
-
-        // INSECURE: anyone can mint
+        // INSECURE: anyone can mint. Temp hack for dev purposes
         #[external(v0)]
         fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {
             self.erc20.mint(recipient, amount);
         }
+    }
+
+    // SUPER INSECURE: anyone can reset. Temp hack for dev purposes
+    // Resets user balance
+    #[external(v0)]
+    fn reset(ref self: ContractState, address: ContractAddress) {
+        let bal = self.erc20.balance_of(address);
+        self.erc20.burn(address, bal);
     }
 
     impl ERC20HooksImpl of ERC20Component::ERC20HooksTrait<ContractState> {
@@ -58,13 +66,13 @@ mod Erc20 {
           recipient: ContractAddress,
           amount: u256
         ) {
-            // Make sure the recipient is whitelisted
-
             let mut contract_state = ERC20Component::HasComponent::get_contract_mut(ref self);
-
-            let registry_dispatcher = IRegistryDispatcher { contract_address: contract_state.registry.read() };
-            assert!(registry_dispatcher.is_whitelisted(recipient), "Recipient is not whitelisted");
-
+            // Make sure the recipient is whitelisted
+            if (recipient != Zero::zero()) {
+                let registry_dispatcher = IRegistryDispatcher { contract_address: contract_state.registry.read() };
+                assert!(registry_dispatcher.is_whitelisted(recipient), "Recipient is not whitelisted");
+            }
+            
             contract_state.emit(PassedWhitelist { Address: recipient });
         }
       
