@@ -91,6 +91,7 @@ function App() {
 
   
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [connectedAddress, setConnectedAddress] = useState<string>();
   const [walletState, setWalletState] = useState<'empty' | 'issuing' | 'has_credential' | 'error_issuing'>('empty');
   const [credentialData, setCredentialData] = useState<{ jwt: string, parsed: { countryCode: string, receiverAddress: string } } | null>(null);
   const [verificationApproved, setVerificationApproved] = useState<boolean>(false);
@@ -159,7 +160,7 @@ function App() {
   };
 
   const updateState = (newState: ProofState) => {
-    console.log("Updating state to:", newState);
+    //console.log("Updating state to:", newState);
     currentStateRef.current = newState;
     setProofState((prevState) => ({
       ...prevState,
@@ -213,7 +214,7 @@ function App() {
       const mockJwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXhhbXBsZToxMjMiLCJuYXRpb25hbGl0eSI6IkZJIn0.mockSignature";
       const parsedData = {
           countryCode: "246", // Finland
-          receiverAddress: RECEIVER_ADDRESS 
+          receiverAddress: connectedAddress!
 
       };
       
@@ -292,6 +293,33 @@ function App() {
     const receipt = await provider.waitForTransaction(res.transaction_hash); 
 
     console.log("Remove ready", res, receipt);
+  }
+
+  const connectWallet = async () => {
+    
+
+    /*  let provider : RpcProvider;
+     if (USE_LOCAL) {
+        provider = new RpcProvider({ nodeUrl: LOCAL_PROVIDER_URL });
+        const account = new Account(provider, LOCAL_ACC_ADDRESS, LOCAL_PRIV_KEY);
+        erc20Contract = new Contract(erc20Abi, LOCAL_ERC20_ADDRESS, provider);
+        erc20Contract.connect(account);
+      }
+      else { */
+        const provider = new RpcProvider({ nodeUrl: SEPOLIA_PROVIDER_URL });
+        const selectedWalletSWO = await connect();
+        if (!selectedWalletSWO) {
+          throw new Error('No wallet connected');
+        }
+        const myWalletAccount = await WalletAccount.connect(
+          provider,
+          selectedWalletSWO
+        );
+        console.log("Connected wallet", myWalletAccount); 
+        setConnectedAddress(myWalletAccount.address);
+
+     // }
+
   }
 
 
@@ -396,6 +424,9 @@ function App() {
       const receipt = await provider.waitForTransaction(res.transaction_hash); 
       
       console.log("Proof ready", res, receipt);
+      setIsWhitelisted(true);
+      updateState(ProofState.Initial);
+      closeModal();
 
 
     } catch (error) {
@@ -406,19 +437,28 @@ function App() {
   return (
     <div className="container">
       <h1 className="title">StarkComply</h1>
-
-      <div className="status-indicators">
-        <p>Wallet Connected: <span className={false ? 'status-ok' : 'status-nok'}>{false ? 'Yes' : 'No (Dev Mode)'}</span></p>
-        <p>Whitelist Status: <span className={isWhitelisted ? 'status-ok' : 'status-nok'}>{isWhitelisted ? 'Whitelisted' : 'Not Whitelisted'}</span></p>
-      </div>
-
+      {connectedAddress && (
+        <div className="status-indicators">
+          <p>Connected Wallet: <span>{connectedAddress}</span></p>
+          <p>Whitelist Status: <span>{isWhitelisted ? 'Whitelisted' : 'Not Whitelisted'}</span></p>
+        </div>
+      )}
       <div className="controls">
-        <button className="primary-button" onClick={openModal} disabled={isModalOpen || (proofState.state !== ProofState.Initial && proofState.state !== ProofState.ProofVerified)}>
-          {isWhitelisted ? "Re-Verify" : "Verify Nationality & Whitelist"}
-        </button>
-        <button className="secondary-button" onClick={remove}>
-          Remove Address
-        </button>
+        {connectedAddress && (
+        <span>
+          <button className="primary-button" onClick={openModal} disabled={isModalOpen || (proofState.state !== ProofState.Initial && proofState.state !== ProofState.ProofVerified)}>
+            {isWhitelisted ? "Re-Verify" : "Verify Nationality & Whitelist"}
+          </button>
+          <button className="secondary-button" onClick={remove}>
+            Remove Address
+          </button>
+        </span>)}
+        {!connectedAddress && (
+        <span>
+          <button className="primary-button" onClick={connectWallet}>
+            Connect Wallet
+          </button>
+        </span>)}
       </div>
 
       <VerificationModal

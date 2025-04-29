@@ -334,7 +334,7 @@ h1 {
 }
 
 /* Controls for buttons */
-.controls {
+.controls span, controls {
   display: flex;
   justify-content: center;
   gap: 15px;

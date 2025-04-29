@@ -100,13 +100,15 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
             <p className="permission-request">
               StarkComply requests permission to use this credential to verify your nationality and whitelist your address.
             </p>
-            <div className="approval-buttons">
-              <button onClick={handleVerificationApproval} className="primary-button">
-                Approve
-              </button>
-              <button onClick={onClose} className="secondary-button">
-                Deny
-              </button>
+            <div className="controls">
+              <span>
+                <button onClick={handleVerificationApproval} className="primary-button">
+                  Approve
+                </button>
+                <button onClick={onClose} className="secondary-button">
+                  Deny
+                </button>
+              </span>
             </div>
           </div>
         );
@@ -130,13 +132,13 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
     <div className="modal-overlay">
       <div className="modal-content">
         <h2>Identity Verification</h2> 
-        <button 
+{/*         <button 
            onClick={onClose} 
            className="close-button" 
            disabled={proofState.state !== 'Initial' && proofState.state !== 'ProofVerified'}
         >
           X
-        </button>
+        </button> */}
 
         {renderContent()} 
 
