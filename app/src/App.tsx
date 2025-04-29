@@ -95,8 +95,8 @@ function App() {
   const [walletState, setWalletState] = useState<'empty' | 'issuing' | 'has_credential' | 'error_issuing'>('empty');
   const [credentialData, setCredentialData] = useState<{ jwt: string, parsed: { countryCode: string, receiverAddress: string } } | null>(null);
   const [verificationApproved, setVerificationApproved] = useState<boolean>(false);
-  const [isWhitelisted, setIsWhitelisted] = useState<boolean>(false); // Track whitelist status
-
+  const [isWhitelisted, setIsWhitelisted] = useState<boolean>(false);
+  const [walletTokenBalance, setWalletTokenBalance] = useState<bigint>(0n);
 
   useEffect(() => {
     const initWasm = async () => {
@@ -121,6 +121,35 @@ function App() {
     initWasm();
     loadVk();
   }, []);
+
+  const refreshTokenBalance = async () => {
+    if (connectedAddress) {
+      const provider = new RpcProvider({ nodeUrl: SEPOLIA_PROVIDER_URL });
+      const erc20Contract = new Contract(erc20Abi, SEPOLIA_ERC20_ADDRESS, provider);
+      const balance = await erc20Contract.balance_of(connectedAddress);
+      console.log("Found token balance: " + balance.toString());
+      setWalletTokenBalance(BigInt(balance));
+    }
+  }
+
+  const refreshWhitelistStatus = async () => {
+    if (connectedAddress) {
+      const provider = new RpcProvider({ nodeUrl: SEPOLIA_PROVIDER_URL });
+      const registryContract = new Contract(registryAbi, SEPOLIA_REGISTRY_ADDRESS, provider);
+      const status = await registryContract.is_whitelisted(connectedAddress);
+      console.log("Whitelist status: " + status.toString());
+      setIsWhitelisted(!!status);
+    }
+  }
+
+  useEffect(() => {
+    const check = async () => {
+      await refreshTokenBalance();
+      await refreshWhitelistStatus();
+    }
+    check();
+    
+  }, [connectedAddress]);
   
 
   const resetState = () => {
@@ -256,10 +285,11 @@ function App() {
         erc20Contract.connect(myWalletAccount);
       }
 
-      const res = await erc20Contract.mint(RECEIVER_ADDRESS, 5);
+      const res = await erc20Contract.mint(connectedAddress, 5);
       const receipt = await provider.waitForTransaction(res.transaction_hash); 
       
       console.log("Mint ready", res, receipt);
+      await refreshTokenBalance();
   }
 
   const remove = async () => {
@@ -289,15 +319,14 @@ function App() {
       mainContract.connect(myWalletAccount);
     }
 
-    const res = await mainContract.remove_from_whitelist(RECEIVER_ADDRESS);
+    const res = await mainContract.remove_from_whitelist(connectedAddress);
     const receipt = await provider.waitForTransaction(res.transaction_hash); 
 
     console.log("Remove ready", res, receipt);
+    await refreshWhitelistStatus();
   }
 
   const connectWallet = async () => {
-    
-
     /*  let provider : RpcProvider;
      if (USE_LOCAL) {
         provider = new RpcProvider({ nodeUrl: LOCAL_PROVIDER_URL });
@@ -318,10 +347,10 @@ function App() {
         console.log("Connected wallet", myWalletAccount); 
         setConnectedAddress(myWalletAccount.address);
 
+        await refreshTokenBalance();
+
      // }
-
   }
-
 
   const handleVerificationApproval = () => {
     if (credentialData?.parsed) {
@@ -424,7 +453,7 @@ function App() {
       const receipt = await provider.waitForTransaction(res.transaction_hash); 
       
       console.log("Proof ready", res, receipt);
-      setIsWhitelisted(true);
+      await refreshWhitelistStatus();
       updateState(ProofState.Initial);
       closeModal();
 
@@ -437,10 +466,14 @@ function App() {
   return (
     <div className="container">
       <h1 className="title">StarkComply</h1>
+      
       {connectedAddress && (
         <div className="status-indicators">
           <p>Connected Wallet: <span>{connectedAddress}</span></p>
           <p>Whitelist Status: <span>{isWhitelisted ? 'Whitelisted' : 'Not Whitelisted'}</span></p>
+          <p>Wallet token balance: <span>{walletTokenBalance}</span></p>
+          {/* For debug purposes, remove from whitelist */}
+          <span onClick={remove}>&nbsp;&nbsp;&nbsp;</span>
         </div>
       )}
       <div className="controls">
@@ -449,8 +482,8 @@ function App() {
           <button className="primary-button" onClick={openModal} disabled={isModalOpen || (proofState.state !== ProofState.Initial && proofState.state !== ProofState.ProofVerified)}>
             {isWhitelisted ? "Re-Verify" : "Verify Nationality & Whitelist"}
           </button>
-          <button className="secondary-button" onClick={remove}>
-            Remove Address
+          <button className="secondary-button" onClick={transfer}>
+            Mint tokens
           </button>
         </span>)}
         {!connectedAddress && (
