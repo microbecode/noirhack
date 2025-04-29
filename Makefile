@@ -102,5 +102,5 @@ deploy-registry-sepolia:
 
 # Replace class-hash and argument: registry's deployment address
 deploy-erc20-sepolia:
-	cd contracts && sncast --account acc-for-noirhack deploy --class-hash 0x05d27bcd57ee078bbc623ecc60a87f5e518b53900e0ae4d0e538c1724ea3824c --arguments 0x0540eeb8cff58b6696cfd192f9afbbdb406fcea24825157390d29c9300001f15
+	cd contracts && sncast --account acc-for-noirhack deploy --class-hash 0x05d27bcd57ee078bbc623ecc60a87f5e518b53900e0ae4d0e538c1724ea3824c --arguments 0x02657d649e15748df9fb0ff1c8761653c53c2f51a9a1d2a4a6d7a009a90c5574
 
