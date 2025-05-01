@@ -494,7 +494,7 @@ function App() {
             {isWhitelisted ? "Re-Verify" : "Verify Nationality & Whitelist"}
           </button>
           <button className="secondary-button" onClick={transfer}>
-            Mint tokens
+            Buy tokens
           </button>
         </span>)}
         {!connectedAddress && (
