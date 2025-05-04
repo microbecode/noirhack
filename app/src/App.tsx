@@ -29,23 +29,12 @@ export enum ProofState {
   ConnectingWallet = "ConnectingWallet",
 }
 
-
-/// Whether to use local devnet or Sepolia
-const USE_LOCAL = false;
 /// Who should get whitelisted and receive tokens
 const RECEIVER_ADDRESS = "0x123";
-
 
 const SEPOLIA_REGISTRY_ADDRESS = "0x0540eeb8cff58b6696cfd192f9afbbdb406fcea24825157390d29c9300001f15";
 const SEPOLIA_ERC20_ADDRESS = "0x0603fcfabd24c4ce314fb524bbb6527ede5f6fd478d7471958f257a29b41146a";
 const SEPOLIA_PROVIDER_URL = "https://free-rpc.nethermind.io/sepolia-juno/v0_8";
-
-const LOCAL_REGISTRY_ADDRESS = "0x0430b385df09d7d23184a009b6fb92ded44f13078576fc4b81eb0c969fa28bfc";
-const LOCAL_ERC20_ADDRESS = "0x037e084e7ec576ae0a7696b742d26555bcbc450763648b07091a9e2766638f4e";
-const LOCAL_PROVIDER_URL = "http://localhost:5050/rpc";
-const LOCAL_PRIV_KEY = "0x0000000000000000000000000000000071d7bb07b9a64f6f78ac4c816aff4da9"; // First from devnet accounts
-const LOCAL_ACC_ADDRESS = "0x064b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691"; // first from devnet accounts
-
 
 // --- Mock JWT Parsing ---
 // In a real app, use a library like jwt-decode or jose
@@ -260,36 +249,25 @@ function App() {
   };
 
   const transfer = async () => {
-    let erc20Contract : Contract;
-    let provider : RpcProvider;
 
-      if (USE_LOCAL) {
-        provider = new RpcProvider({ nodeUrl: LOCAL_PROVIDER_URL });
-        const account = new Account(provider, LOCAL_ACC_ADDRESS, LOCAL_PRIV_KEY);
-        erc20Contract = new Contract(erc20Abi, LOCAL_ERC20_ADDRESS, provider);
-        erc20Contract.connect(account);
-      }
-      else {
-        provider = new RpcProvider({ nodeUrl: SEPOLIA_PROVIDER_URL });
-        const selectedWalletSWO = await connect();
-        if (!selectedWalletSWO) {
-          throw new Error('No wallet connected');
-        }
-        const myWalletAccount = await WalletAccount.connect(
-          provider,
-          selectedWalletSWO
-        );
-        console.log(myWalletAccount); 
-  
-        erc20Contract = new Contract(erc20Abi, SEPOLIA_ERC20_ADDRESS, provider);
-        erc20Contract.connect(myWalletAccount);
-      }
+    const provider = new RpcProvider({ nodeUrl: SEPOLIA_PROVIDER_URL });
+    const selectedWalletSWO = await connect();
+    if (!selectedWalletSWO) {
+      throw new Error('No wallet connected');
+    }
+    const myWalletAccount = await WalletAccount.connect(
+      provider,
+      selectedWalletSWO
+    );
 
-      const res = await erc20Contract.mint(connectedAddress, 5);
-      const receipt = await provider.waitForTransaction(res.transaction_hash); 
-      
-      console.log("Mint ready", res, receipt);
-      await refreshTokenBalance();
+    const erc20Contract = new Contract(erc20Abi, SEPOLIA_ERC20_ADDRESS, provider);
+    erc20Contract.connect(myWalletAccount);
+
+    const res = await erc20Contract.mint(connectedAddress, 5);
+    const receipt = await provider.waitForTransaction(res.transaction_hash); 
+    
+    console.log("Mint ready", res, receipt);
+    await refreshTokenBalance();
   }
 
   /// Removes:
@@ -297,36 +275,23 @@ function App() {
   /// - token balance for the connected address
   /// Basically resets everything for that address
   const remove = async () => {
-    let mainContract : Contract;
-    let erc20Contract : Contract;
-    let provider : RpcProvider;
 
-    if (USE_LOCAL) {
-      provider = new RpcProvider({ nodeUrl: LOCAL_PROVIDER_URL });
-
-      mainContract = new Contract(registryAbi, LOCAL_REGISTRY_ADDRESS, provider);
-      const account = new Account(provider, LOCAL_ACC_ADDRESS, LOCAL_PRIV_KEY);
-      mainContract.connect(account);
+    const provider = new RpcProvider({ nodeUrl: SEPOLIA_PROVIDER_URL });
+    const selectedWalletSWO = await connect();
+    if (!selectedWalletSWO) {
+      throw new Error('No wallet connected');
     }
-    else {
-      provider = new RpcProvider({ nodeUrl: SEPOLIA_PROVIDER_URL });
-      const selectedWalletSWO = await connect();
-      if (!selectedWalletSWO) {
-        throw new Error('No wallet connected');
-      }
-      const myWalletAccount = await WalletAccount.connect(
-        provider,
-        selectedWalletSWO
-      );
-      console.log(myWalletAccount);
+    const myWalletAccount = await WalletAccount.connect(
+      provider,
+      selectedWalletSWO
+    );
 
-      mainContract = new Contract(registryAbi, SEPOLIA_REGISTRY_ADDRESS, provider);
-      mainContract.connect(myWalletAccount);
-      erc20Contract = new Contract(erc20Abi, SEPOLIA_ERC20_ADDRESS, provider);
-      erc20Contract.connect(myWalletAccount);
-    }
+    const mainContract = new Contract(registryAbi, SEPOLIA_REGISTRY_ADDRESS, provider);
+    mainContract.connect(myWalletAccount);
+    const erc20Contract = new Contract(erc20Abi, SEPOLIA_ERC20_ADDRESS, provider);
+    erc20Contract.connect(myWalletAccount);
 
-    let res = await erc20Contract!.reset(connectedAddress);
+    let res = await erc20Contract.reset(connectedAddress);
     await provider.waitForTransaction(res.transaction_hash); 
 
     res = await mainContract.remove_from_whitelist(connectedAddress);
@@ -338,29 +303,19 @@ function App() {
   }
 
   const connectWallet = async () => {
-    /*  let provider : RpcProvider;
-     if (USE_LOCAL) {
-        provider = new RpcProvider({ nodeUrl: LOCAL_PROVIDER_URL });
-        const account = new Account(provider, LOCAL_ACC_ADDRESS, LOCAL_PRIV_KEY);
-        erc20Contract = new Contract(erc20Abi, LOCAL_ERC20_ADDRESS, provider);
-        erc20Contract.connect(account);
+      const provider = new RpcProvider({ nodeUrl: SEPOLIA_PROVIDER_URL });
+      const selectedWalletSWO = await connect();
+      if (!selectedWalletSWO) {
+        throw new Error('No wallet connected');
       }
-      else { */
-        const provider = new RpcProvider({ nodeUrl: SEPOLIA_PROVIDER_URL });
-        const selectedWalletSWO = await connect();
-        if (!selectedWalletSWO) {
-          throw new Error('No wallet connected');
-        }
-        const myWalletAccount = await WalletAccount.connect(
-          provider,
-          selectedWalletSWO
-        );
-        console.log("Connected wallet", myWalletAccount); 
-        setConnectedAddress(myWalletAccount.address);
+      const myWalletAccount = await WalletAccount.connect(
+        provider,
+        selectedWalletSWO
+      );
+      console.log("Connected wallet", myWalletAccount); 
+      setConnectedAddress(myWalletAccount.address);
 
-        await refreshTokenBalance();
-
-     // }
+      await refreshTokenBalance();
   }
 
   const handleVerificationApproval = () => {
@@ -398,8 +353,8 @@ function App() {
       console.log("Circuit input:", input);
       
       // Generate witness
-      let noir = new Noir({ bytecode, abi: abi as any });
-      let execResult = await noir.execute(input);
+      const noir = new Noir({ bytecode, abi: abi as any });
+      const execResult = await noir.execute(input);
 
       console.log("Witness generation result:", execResult);
       
@@ -410,8 +365,8 @@ function App() {
         throw new Error("Verification Key not loaded yet.");
       }
 
-      let honk = new UltraHonkBackend(bytecode, { threads: 2 });
-      let proof = await honk.generateProof(execResult.witness, { keccak: true });
+      const honk = new UltraHonkBackend(bytecode, { threads: 2 });
+      const proof = await honk.generateProof(execResult.witness, { keccak: true });
       honk.destroy();
       console.log("Proof generated:", proof);
       
@@ -430,35 +385,23 @@ function App() {
       // Connect wallet
       updateState(ProofState.ConnectingWallet);
 
-      let mainContract : Contract;
-      let provider : RpcProvider;
+      const provider = new RpcProvider({ nodeUrl: SEPOLIA_PROVIDER_URL });
+      const selectedWalletSWO = await connect();
+      if (!selectedWalletSWO) {
+        throw new Error('No wallet connected');
+      }
+      const myWalletAccount = await WalletAccount.connect(
+        provider,
+        selectedWalletSWO
+      );
+      console.log(myWalletAccount);
+
+      // Send transaction
+      updateState(ProofState.SendingTransaction);
+
+      const mainContract = new Contract(registryAbi, SEPOLIA_REGISTRY_ADDRESS, provider);
+      mainContract.connect(myWalletAccount);
       
-      if (USE_LOCAL) {
-        provider = new RpcProvider({ nodeUrl: LOCAL_PROVIDER_URL });
-        
-
-        mainContract = new Contract(registryAbi, LOCAL_REGISTRY_ADDRESS, provider);
-        const account = new Account(provider, LOCAL_ACC_ADDRESS, LOCAL_PRIV_KEY);
-        mainContract.connect(account);
-      }
-      else {
-        provider = new RpcProvider({ nodeUrl: SEPOLIA_PROVIDER_URL });
-        const selectedWalletSWO = await connect();
-        if (!selectedWalletSWO) {
-          throw new Error('No wallet connected');
-        }
-        const myWalletAccount = await WalletAccount.connect(
-          provider,
-          selectedWalletSWO
-        );
-        console.log(myWalletAccount);
-
-        // Send transaction
-        updateState(ProofState.SendingTransaction);
-
-        mainContract = new Contract(registryAbi, SEPOLIA_REGISTRY_ADDRESS, provider);
-        mainContract.connect(myWalletAccount);
-      }
 
       const res = await mainContract.verify_to_whitelist(callData); // keep the number of elements to pass to the verifier library call
       const receipt = await provider.waitForTransaction(res.transaction_hash); 
@@ -467,7 +410,6 @@ function App() {
       await refreshWhitelistStatus();
       updateState(ProofState.Initial);
       closeModal();
-
 
     } catch (error) {
       handleError(error);
