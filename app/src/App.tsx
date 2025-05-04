@@ -29,46 +29,9 @@ export enum ProofState {
   ConnectingWallet = "ConnectingWallet",
 }
 
-/// Who should get whitelisted and receive tokens
-const RECEIVER_ADDRESS = "0x123";
-
 const SEPOLIA_REGISTRY_ADDRESS = "0x0540eeb8cff58b6696cfd192f9afbbdb406fcea24825157390d29c9300001f15";
 const SEPOLIA_ERC20_ADDRESS = "0x0603fcfabd24c4ce314fb524bbb6527ede5f6fd478d7471958f257a29b41146a";
 const SEPOLIA_PROVIDER_URL = "https://free-rpc.nethermind.io/sepolia-juno/v0_8";
-
-// --- Mock JWT Parsing ---
-// In a real app, use a library like jwt-decode or jose
-// This is a simplified placeholder
-const parseJwtForNationality = (jwt: string): { countryCode: string, receiverAddress: string } | null => {
-  try {
-    // Basic check for JWT structure (3 parts separated by dots)
-    if (!jwt || jwt.split('.').length !== 3) {
-      console.warn("Invalid JWT format");
-      return null;
-    }
-    // WARNING: This does not actually decode or verify the JWT signature!
-    // It's just extracting a hardcoded value for demonstration.
-    // TODO: Replace with actual JWT decoding and verification logic.
-    // For now, let's assume the JWT *contains* the receiver address and country code
-    // Example: Simulated decoded payload
-    const decodedPayload = { 
-      country: "US", // Example country code
-      starknet_address: RECEIVER_ADDRESS, // Example: Use the dev account address for now
-      // ... other JWT claims
-    }; 
-    console.log("Simulated JWT Decode:", decodedPayload);
-    // TODO: Map country name/code to the number expected by the circuit if necessary
-    const countryCodeForCircuit = "840"; // Example: Pretend "US" maps to 840
-    return { 
-      countryCode: countryCodeForCircuit, 
-      receiverAddress: decodedPayload.starknet_address 
-    };
-  } catch (e) {
-    console.error("Failed to parse JWT:", e);
-    return null;
-  }
-};
-// --- End Mock JWT Parsing ---
 
 function App() {
 
@@ -77,7 +40,6 @@ function App() {
   });
   const [vk, setVk] = useState<Uint8Array | null>(null);
   const currentStateRef = useRef<ProofState>(ProofState.Initial);
-
   
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [connectedAddress, setConnectedAddress] = useState<string>();
@@ -139,7 +101,6 @@ function App() {
     check();
     
   }, [connectedAddress]);
-  
 
   const resetState = () => {
     currentStateRef.current = ProofState.Initial;
@@ -202,6 +163,41 @@ function App() {
 
   const handleProcessJwt = () => {
     updateState(ProofState.ProcessingJWT); // Indicate processing
+
+    // --- Mock JWT Parsing ---
+    // In a real app, use a library like jwt-decode or jose
+    // This is a simplified placeholder
+    const parseJwtForNationality = (jwt: string): { countryCode: string, receiverAddress: string } | null => {
+      try {
+        // Basic check for JWT structure (3 parts separated by dots)
+        if (!jwt || jwt.split('.').length !== 3) {
+          console.warn("Invalid JWT format");
+          return null;
+        }
+        // WARNING: This does not actually decode or verify the JWT signature!
+        // It's just extracting a hardcoded value for demonstration.
+        // TODO: Replace with actual JWT decoding and verification logic.
+        // For now, let's assume the JWT *contains* the receiver address and country code
+        // Example: Simulated decoded payload
+        const decodedPayload = { 
+          country: "US", // Example country code
+          starknet_address: connectedAddress!, // Example: Use the dev account address for now
+          // ... other JWT claims
+        }; 
+        console.log("Simulated JWT Decode:", decodedPayload);
+        // TODO: Map country name/code to the number expected by the circuit if necessary
+        const countryCodeForCircuit = "840"; // Example: Pretend "US" maps to 840
+        return { 
+          countryCode: countryCodeForCircuit, 
+          receiverAddress: decodedPayload.starknet_address 
+        };
+      } catch (e) {
+        console.error("Failed to parse JWT:", e);
+        return null;
+      }
+    };
+    // --- End Mock JWT Parsing ---
+
     try {
       const credential = parseJwtForNationality(credentialData?.jwt || "");
       if (credential) {
