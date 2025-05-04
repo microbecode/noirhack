@@ -31,7 +31,7 @@ This project was created in [NoirHack hackathon](https://www.noirhack.com/).
 The installation instructions depend on which part you want to do yourself and where do you want to use a ready solution.
 
 - For running just the website with predeployed contracts, please check the [README](/app/README) in the `app` folder.
-- For rebuilding the circuit, regenerating verifier and redeploying the contracts, please check the instructions [here](INSTALLATION.md).
+- For rebuilding the circuit, regenerating verifier and redeploying the contracts, please check the instructions [here](INSTALLATION).
 
 Unfortunately, running all of the project's components locally is not possible, due to limitations in Starknet wallets. Therefore, all of the instructions guide you to use Starknet Sepolia.
 
