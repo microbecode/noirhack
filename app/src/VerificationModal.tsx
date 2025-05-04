@@ -42,6 +42,11 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
     return null;
   }
 
+  const shortenAddress = (address: string) => {
+    if (address.length <= 10) return address; // No need to shorten
+    return `${address.slice(0, 5)}...${address.slice(-5)}`; // Shorten to first 5 and last 5 characters
+  }
+
   const renderContent = () => {
     if (verificationApproved) {
       // --- Stage 5 & 6: Verification in Progress / Complete ---
@@ -89,7 +94,7 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
             {credentialData?.parsed && (
               <div className="credential-details">
                 <p><strong>Nationality:</strong> Finland (Code: {credentialData.parsed.countryCode})</p>
-                <p><strong>Whitelisting Address:</strong> {credentialData.parsed.receiverAddress}</p>
+                <p><strong>Whitelisting Address:</strong> {shortenAddress(credentialData.parsed.receiverAddress)}</p>
                  {/* Optional: Show raw JWT */}
                 {/* <details>
                     <summary>Show Raw JWT</summary>
