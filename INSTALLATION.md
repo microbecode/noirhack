@@ -3,7 +3,7 @@ These instructions help you regenerate and redeploy everything needed in the pro
 1. **Prerequisites:**
 - Node.js (>= 20)
 - Python 3.10
-- A private key and a public address for a Starknet wallet with some STRK tokens, used for deployments. Check the [README](/app/README) for info on how to get these.
+- A private key and a public address for a Starknet wallet with some STRK tokens, used for deployments. Check the `app`'s [README](/app/README) for info on how to get these.
 
 1. **Install Noir and Aztec packages:**  
     ```sh
@@ -54,13 +54,13 @@ These instructions help you regenerate and redeploy everything needed in the pro
 
 1. **Build all of the Cairo contracts:**
     ```sh
-    build-all
+    make build-all
     ```
 
 1. **Import Sepolia account:**
     Extract your Starknet wallet's private key and public address. Add these into the following command and run it:
     ```sh
-    sncast account import --type argent --silent --name acc-for-noirhack --address 0x1 --private-key 0x2
+    sncast account import --type argent --silent --name acc-for-noirhack --address 0x1 --private-key 0x2 --url https://free-rpc.nethermind.io/sepolia-juno/v0_8
     ```
     This will import the wallet to a file that is something similar to this: ~/.starknet_accounts/starknet_open_zeppelin_accounts.json
 
