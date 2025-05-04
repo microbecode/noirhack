@@ -16,7 +16,7 @@ This project was created in [NoirHack hackathon](https://www.noirhack.com/).
 
 ## Architecture
 
-![Usage Flow](noirhack-flow.png)
+![Usage Flow](./noirhack-flow.png)
 
 ## User flow
 
