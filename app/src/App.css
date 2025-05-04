@@ -1,45 +1,85 @@
+/* Reset baseline and ensure full width/height */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Full-page background with blended gradient and centralized content */
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  font-family: 'Roboto', sans-serif;
+  background: url("noir-background.jpg");
+  background-size: cover;
   text-align: center;
 }
 
+/* Main container centered for all viewports */
 .container {
+  width: 90%;
+  max-width: 800px;
+  padding: 20px;
+  margin: 0 auto;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
+  gap: 1.5rem;
+}
+
+/* Additional adjustments for larger screens */
+@media (min-width: 1024px) {
+  .container {
+    padding: 40px;
+    margin: 40px auto;
+  }
+}
+
+/* Title styles for visibility */
+.title {
+  font-size: 3rem;
+  color: #FFCC00; /* Gold/yellow accent */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  margin-bottom: 10px;
 }
 
 h1 {
   font-size: 2rem;
   margin-bottom: 1rem;
+  color: #FFFFFF;
 }
 
+/* State-machine / status indicator area with unified theme */
 .state-machine {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   width: 100%;
   padding: 1.5rem;
-  background-color: #1a1a1a;
+  background-color: rgba(0, 0, 0, 0.5);
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
+/* Input section */
 .input-section {
   display: flex;
   gap: 1.5rem;
   width: 100%;
   padding-bottom: 1.5rem;
   margin: 0.75rem 0 1.5rem 0;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #888;
 }
 
+/* -- State indicator (for single steps) -- */
 .state-indicator {
   display: flex;
   align-items: center;
@@ -47,26 +87,27 @@ h1 {
   padding: 0.5rem;
   border-radius: 6px;
   transition: all 0.3s ease;
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
 .state-indicator.active {
-  background-color: rgba(25, 118, 210, 0.1);
+  background-color: rgba(25, 118, 210, 0.2);
 }
 
 .state-indicator.error {
-  background-color: rgba(211, 47, 47, 0.1);
+  background-color: rgba(211, 47, 47, 0.2);
 }
 
 .state-dot {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background-color: #444;
+  background-color: #BBBBBB;
   transition: all 0.3s ease;
 }
 
 .state-indicator.pending .state-dot {
-  background-color: #555;
+  background-color: #BBBBBB;
 }
 
 .state-indicator.active .state-dot {
@@ -80,33 +121,255 @@ h1 {
 }
 
 .state-indicator.error .state-dot {
-  background-color: #d32f2f;
+  background-color: #D32F2F;
   box-shadow: 0 0 0 4px rgba(211, 47, 47, 0.3);
 }
 
 .state-label {
   font-weight: 500;
   font-size: 1rem;
-  color: #fff;
+  color: #FFFFFF;
 }
 
+/* Error Message styling */
 .error-message {
   padding: 1rem;
-  background-color: rgba(211, 47, 47, 0.1);
-  border: 1px solid #d32f2f;
+  background-color: rgba(211, 47, 47, 0.2);
+  border: 1px solid #D32F2F;
   border-radius: 8px;
-  color: #d32f2f;
+  color: #D32F2F;
   font-size: 0.9rem;
   width: 100%;
   text-align: left;
 }
 
-.controls {
+/* Progress Bar / Steps */
+.progress-container {
   display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin: 20px 0;
+  padding: 0 10px;
 }
 
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  text-align: center;
+}
+
+.progress-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 5px);
+  width: 100%;
+  height: 4px;
+  background-color: #777;
+  z-index: -1;
+  transform: translateY(-50%);
+}
+
+.progress-step.completed:not(:last-child)::after {
+  background-color: #4caf50;
+}
+
+.progress-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #777;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #333;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.progress-step.active .progress-circle {
+  background-color: #1976d2;
+  color: white;
+  box-shadow: 0 0 10px rgba(25, 118, 210, 0.5);
+}
+
+.progress-step.completed .progress-circle {
+  background-color: #4caf50;
+  color: white;
+}
+
+.progress-label {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #FFFFFF;
+}
+
+/* Timeline container for vertical timeline */
+.timeline-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 10px;
+  border-left: 4px solid #888;
+  position: relative;
+}
+
+.timeline-step::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  background-color: #888;
+  border-radius: 50%;
+  transform: translateY(50%);
+}
+
+.timeline-step.completed {
+  border-left-color: #4caf50;
+}
+
+.timeline-step.completed::before {
+  background-color: #4caf50;
+}
+
+.timeline-step.active {
+  border-left-color: #1976d2;
+}
+
+.timeline-step.active::before {
+  background-color: #1976d2;
+  box-shadow: 0 0 10px rgba(25, 118, 210, 0.5);
+}
+
+.timeline-icon {
+  font-size: 1.5rem;
+  color: #FFFFFF;
+}
+
+.timeline-content {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.timeline-label {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #FFCC00;
+}
+
+.timeline-status {
+  font-size: 0.9rem;
+  color: #CCCCCC;
+}
+
+/* Compact timeline (horizontal steps) */
+.compact-timeline {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  color: #FFFFFF;
+  width: 100%;
+}
+
+.compact-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 5px;
+  transition: all 0.3s ease;
+}
+
+.compact-icon {
+  font-size: 1.7rem;
+  color: #BBB;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.compact-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #CCC;
+  transition: color 0.3s ease;
+}
+
+.compact-step.active .compact-icon {
+  color: #ff6f61;
+  transform: scale(1.2);
+}
+
+.compact-step.active .compact-label {
+  color: #ff6f61;
+}
+
+.compact-step.completed .compact-icon {
+  color: #4caf50;
+}
+
+.compact-step.completed .compact-label {
+  color: #4caf50;
+}
+
+/* Controls for buttons */
+.controls span, controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+button {
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.25s;
+}
+
+.primary-button {
+  background-color: #4caf50;
+  color: #FFF;
+}
+
+.primary-button:hover {
+  background-color: #45a049;
+}
+
+.secondary-button {
+  background-color: #008cba;
+  color: #FFF;
+}
+
+.secondary-button:hover {
+  background-color: #007bb5;
+}
+
+/* Input group styles */
 .input-group {
   display: flex;
   flex-direction: row;
@@ -118,8 +381,8 @@ h1 {
 .input-group label {
   font-size: 1rem;
   font-weight: 500;
-  color: #fff;
-  min-width: 2rem;
+  color: #FFF;
+  min-width: 6rem;
   text-align: right;
 }
 
@@ -129,7 +392,7 @@ h1 {
   border-radius: 6px;
   border: 1px solid #444;
   background-color: #222;
-  color: #fff;
+  color: #FFF;
   font-size: 1rem;
   transition: border-color 0.3s, background-color 0.3s;
 }
@@ -147,43 +410,17 @@ h1 {
   box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.3);
 }
 
-button {
-  font-size: 1rem;
-  font-weight: 500;
-  padding: 0.6em 1.2em;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.25s;
-}
-
-.primary-button {
-  background-color: #1976d2;
-  color: white;
-}
-
-.primary-button:hover {
-  background-color: #1565c0;
-}
-
-.reset-button {
-  background-color: #424242;
-  color: white;
-}
-
-.reset-button:hover {
-  background-color: #303030;
-}
-
+/* Logo styles */
 .logo {
   height: 6em;
   padding: 1.5em;
-  will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }

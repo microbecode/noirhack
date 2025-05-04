@@ -1,12 +1,4 @@
-export enum ProofState {
-  Initial = 'Initial',
-  GeneratingWitness = 'Generating witness',
-  GeneratingProof = 'Generating proof',
-  PreparingCalldata = 'Preparing calldata',
-  ConnectingWallet = 'Connecting wallet',
-  SendingTransaction = 'Sending transaction',
-  ProofVerified = 'Proof is verified'
-}
+import { ProofState } from '../App';
 
 export interface ProofStateData {
   state: ProofState;

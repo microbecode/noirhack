@@ -1,0 +1,13 @@
+{
+  "lockfileVersion": 1,
+  "workspaces": {
+    "": {
+      "devDependencies": {
+        "typescript": "^5.9.0-dev.20250418",
+      },
+    },
+  },
+  "packages": {
+    "typescript": ["typescript@5.9.0-dev.20250418", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-E6sHOUHwNZXATq5rXEV67VWbqEAoLVtWkRf7jSCPtqXxVmURiQhalXGNbwzSwGBQItcOk7TV6Rku2/GO8YajcQ=="],
+  }
+}

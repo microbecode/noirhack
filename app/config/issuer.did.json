@@ -1,0 +1,25 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1"
+  ],
+  "id": "did:web:gov.example",
+  "verificationMethod": [
+    {
+      "id": "did:web:gov.example#key-1",
+      "type": "JsonWebKey2020",
+      "controller": "did:web:gov.example",
+      "publicKeyJwk": {
+        "kty": "RSA",
+        "n": "6tYSxsVPI98Bggv1nDE_HZoYzo60G-jiUMDWRirODYB9i7KLUPeAW0eE_W0KqDgcowT8jix4mjVFmpwwVKULPnC05eEIL9RPYz9o2doVr5G-B1aKLtjmKQVK7FitbzG2E6k1QR_cp57ud4rKAP2j0PEnPgGmXV9cmu5U2sMZVkgr-HaSx0ZInLYWFbSpKGSs0PYNiIYNcY1asB4HM8kueBlKsdTrcufjnHcjwImOZUZe3NrDWXdJ_DyYYIJ0Pb9RT1ggAJwmJU-GDCiBLKo9BVenorvLWnIVsEQyzX06FqcqKhA5JqQw2fQiQQlTc2kYwOw1NZpvDXWDCJCxMroZlQ",
+        "e": "AQAB",
+        "kid": "did:web:gov.example#key-1"
+      }
+    }
+  ],
+  "authentication": [
+    "did:web:gov.example#key-1"
+  ],
+  "assertionMethod": [
+    "did:web:gov.example#key-1"
+  ]
+}

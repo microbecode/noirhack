@@ -1,0 +1,166 @@
+/* VerificationModal.css */
+
+/* Overlay remains the same */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px; /* Added padding to prevent edge-to-edge content */
+}
+
+/* Phone-style modal content */
+.modal-content {
+  position: relative;
+  background: #1e1e1e;
+  width: 360px;
+  max-width: 90%;
+  min-height: 600px;
+  padding: 20px 20px 40px;
+  border-radius: 30px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+  border: 4px solid #333;
+  margin: 20px;  /* Added margin for better visibility */
+  overflow: hidden;
+}
+
+/* Simulated notch using a pseudo-element */
+.modal-content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 25px;
+  background: #1e1e1e;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  border: 4px solid #333;
+  border-bottom: none;
+  z-index: 1;
+}
+
+/* Simulated home indicator at the bottom */
+.modal-content::after {
+  content: "";
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  height: 6px;
+  background: #555;
+  border-radius: 3px;
+  opacity: 0.75;
+}
+
+/* Close button positioned for a phone-style layout */
+.close-button {
+  position: absolute;
+  top: 30px; /* avoid the notch */
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #fff;
+  cursor: pointer;
+  z-index: 2;
+}
+
+/* Header for modal content */
+h2 {
+  margin-top: 60px; /* leave space for the notch */
+  margin-bottom: 20px;
+  text-align: center;
+  color: #FFCC00;
+}
+
+/* Sections and other text styling */
+.jwt-section,
+.credential-section,
+.status-section {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+label {
+  font-weight: bold;
+  color: #fff;
+}
+
+textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background-color: #333;
+  color: #fff;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+}
+
+/* Buttons with mobile-friendly sizing */
+button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+button:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
+
+.primary-button {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.primary-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.jwt-section button,
+.credential-section button {
+  background-color: #007bff;
+  color: white;
+}
+
+.credential-section h3 {
+  margin-bottom: 10px;
+  color: #FFCC00;
+}
+
+.credential-section pre {
+  background-color: #222;
+  padding: 10px;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 150px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.status-section p {
+  font-weight: bold;
+  color: #fff;
+}
+
+.error-message {
+  color: #D32F2F;
+}
+
+.success-message {
+  color: #4caf50;
+}

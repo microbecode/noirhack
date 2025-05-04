@@ -2,9 +2,12 @@
 name = "circuit"
 type = "bin"
 authors = []
+# Update compiler version to match dependency requirement
 compiler_version = ">=1.0.0"
 
 [dependencies]
+# Use correct name, git repo, and tag for noir-jwt v0.4.4
+jwt = { git = "https://github.com/zkemail/noir-jwt", tag = "v0.4.4" }
 
 
 
