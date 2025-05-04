@@ -60,7 +60,7 @@ These instructions help you regenerate and redeploy everything needed in the pro
 1. **Import Sepolia account:**
     Extract your Starknet wallet's private key and public address. Add these into the following command and run it:
     ```sh
-    sncast account import --type argent --silent --name acc-for-noirhack --address 0x1 --private-key 0x2 --url https://free-rpc.nethermind.io/sepolia-juno/v0_8
+    sncast account import --type argent --silent --name acc-for-noirhack --address 0x1 --private-key 0x2
     ```
     This will import the wallet to a file that is something similar to this: ~/.starknet_accounts/starknet_open_zeppelin_accounts.json
 
@@ -68,13 +68,13 @@ These instructions help you regenerate and redeploy everything needed in the pro
     ```sh
     make declare-verifier-sepolia
     ```
-    Note the declared class hash, you will need this in a minute.
+    Note the declared class hash, you will need this in a minute. This may give an error if the contract has already been declared earlier.
 
 1. **Declare the Registry and ERC20 Contracts:**  
     ```sh
     make declare-main-sepolia
     ```
-    Note the two declared class hashes. The first one is for the registry and the second for the ERC20 contract.
+    Note the two declared class hashes. The first one is for the registry and the second for the ERC20 contract. This may give an error if the contract has already been declared earlier.
 
 1. **Deploy the verifier contract:**
     Relace the verifier's class hash in the following command and run it:
@@ -101,3 +101,6 @@ These instructions help you regenerate and redeploy everything needed in the pro
     ```sh
     make artifacts
     ```
+
+1. **Adjust the app's contract addresses:**  
+    Open file `app/src/App.tsx` and change the registry address and ERC20 address constants found at the start of the file. Continue running the app by following its [README](/app/README).

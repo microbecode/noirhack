@@ -2,6 +2,8 @@
 
 StarkComply combines Noir privacy with a compliant Starknet token.
 
+![](noirhack-bg.png)
+
 The project utilizes the following building blocks:
 - A Noir circuit for verifying user's country.
 - Garaga library for generating a Cairo verifier for the Noir circuit.
