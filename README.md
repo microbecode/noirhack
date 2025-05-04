@@ -1,8 +1,8 @@
 # StarkComply
 
-StarkComply combines Noir privacy with a compliant Starknet token.
-
 ![](noirhack-bg.png)
+
+StarkComply combines Noir privacy with a compliant Starknet token.
 
 The project utilizes the following building blocks:
 - A Noir circuit for verifying user's country.
