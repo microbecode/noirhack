@@ -10,7 +10,8 @@ use sha256::sha256_var;
 // Assuming U2048Params exists and has get_params()
 // use bignum::fields::U2048::U2048Params; // Keep commented for now
 // Import Base64 decoder configuration
-use base64::BASE64_DECODER; // Direct import
+// Use the URL_DECODER version for JWTs (URL-safe alphabet, no padding)
+use base64::BASE64_URL_DECODER;
 // Import RuntimeBigNum related types
 use bignum::params::BigNumParams; // Assuming struct name is still BigNumParams
 use bignum::runtime_bignum::RuntimeBigNum;
@@ -19,11 +20,12 @@ use bignum::runtime_bignum::RuntimeBigNum;
 
 
 // Define constants globally with pub
-pub global MAX_SIGNED_DATA_LENGTH: u32 = 440; // Max length for header.payload input
-pub global MAX_PAYLOAD_B64_LENGTH: u32 = 300; // Estimate max length for payload base64 input
+pub global MAX_SIGNED_DATA_LENGTH: u32 = 440; 
+// Payload is now 300 bytes -> 400 Base64url chars (no padding)
+pub global MAX_PAYLOAD_B64_LENGTH: u32 = 400; 
 pub global MAX_CLAIM_LENGTH: u32 = 10; 
-// Estimate max decoded length (worst case is roughly 3/4 * MAX_DATA_LENGTH)
-pub global MAX_DECODED_LENGTH: u32 = 330; // (440 * 3 / 4)
+// Estimate max decoded length (ceil(400 * 3 / 4) = 300)
+pub global MAX_DECODED_LENGTH: u32 = 300; 
 
 // Constants for RuntimeBigNum type
 pub global RSA_NUM_LIMBS: u32 = 18;
@@ -53,40 +55,40 @@ fn bytes_eq<let N: u32>(a: [u8; N], a_len: u32, b: [u8; N], b_len: u32) -> bool 
 }
 
 fn main(
-    // Separate inputs for signed data and payload
-    signed_data_storage: [u8; MAX_SIGNED_DATA_LENGTH], 
-    signed_data_len: u32,   
-    payload_b64_storage: [u8; MAX_PAYLOAD_B64_LENGTH], // Payload base64 part only
-    decoded_payload_len: u32, // Actual length of the decoded payload
-    // base64_decode_offset: u32, // No longer needed if payload passed separately
-    
-    // RSA Signature Verification Inputs (using u128 for limbs)
-    pubkey_modulus_limbs: [u128; RSA_NUM_LIMBS], // N - Modulus
-    signature_limbs: [u128; RSA_NUM_LIMBS],     // S - Signature
-    redc_params_limbs: [u128; RSA_NUM_LIMBS],   // Montgomery Reduction Parameter
-    
-    // Claim Verification Inputs
+    // --- Public Inputs ---
+    // Moved to the top as the ONLY public input
+    wallet_address: pub Field,
+
+    // --- Private Inputs ---
+    signed_data_storage: [u8; MAX_SIGNED_DATA_LENGTH],
+    signed_data_len: u32,
+    payload_b64_storage: [u8; MAX_PAYLOAD_B64_LENGTH],
+    decoded_payload_len: u32,
+    signature_limbs: [u128; RSA_NUM_LIMBS],
+    redc_params_limbs: [u128; RSA_NUM_LIMBS],
+    claim_value_indices: [u32; 2],
+    // Moved back to private:
+    pubkey_modulus_limbs: [u128; RSA_NUM_LIMBS],
     expected_nationality_storage: [u8; MAX_CLAIM_LENGTH],
-    expected_nationality_len: u32, 
-    claim_value_indices: [u32; 2], // Indices relative to *decoded* payload
+    expected_nationality_len: u32
 ) {
     // 1. Construct BigNumParams (with boolean)
-    let rsa_params = BigNumParams::new(true, pubkey_modulus_limbs, redc_params_limbs); 
+    let rsa_params = BigNumParams::new(true, pubkey_modulus_limbs, redc_params_limbs);
 
     // 2. Verify Signature (RSA-SHA256)
+    //    Calculate the hash internally again from private input
     let data_hash: [u8; 32] = sha256_var(signed_data_storage, signed_data_len as u64);
-    
+
     // Construct RuntimeBigNum for signature using struct literal
-    let signature = RsaInt { params: rsa_params, limbs: signature_limbs }; 
-    
+    let signature = RsaInt { params: rsa_params, limbs: signature_limbs };
+
     // Call RSA verification with public exponent e=65537 as u32 (3 arguments)
-    let public_exponent: u32 = 65537; 
+    let public_exponent: u32 = 65537;
     let verification_passed = verify_sha256_pkcs1v15(data_hash, signature, public_exponent);
     assert(verification_passed);
 
-    // 3. Decode Payload Segment 
-    // Pass the correct payload input to the decoder
-    let decoded_payload_full: [u8; MAX_DECODED_LENGTH] = BASE64_DECODER::decode(payload_b64_storage);
+    // 3. Decode Payload Segment (using the correct decoder for Base64url)
+    let decoded_payload_full: [u8; MAX_DECODED_LENGTH] = BASE64_URL_DECODER::decode(payload_b64_storage);
     // let decoded_len = MAX_DECODED_LENGTH; // Placeholder! TODO: Address this // <<< REMOVED Placeholder
 
     // 4. Verify Claim using indices on decoded data
@@ -109,5 +111,8 @@ fn main(
 
     let claim_check_passed = bytes_eq::<MAX_CLAIM_LENGTH>(actual_claim_bytes, actual_claim_len, expected_nationality_storage, expected_nationality_len);
     assert(claim_check_passed);
+
+    // Constrain the public wallet_address (even trivially) to use it
+    assert(wallet_address != 0); 
 
 }

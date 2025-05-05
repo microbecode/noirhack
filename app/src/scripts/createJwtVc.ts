@@ -1,9 +1,12 @@
 // Use static jose imports again
-import { SignJWT, importJWK } from 'jose';
+import { SignJWT } from 'jose';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { webcrypto } from 'node:crypto'; // Import webcrypto
-import type { JWK } from 'jose';
+// Removed unused import from @sd-jwt/sd-jwt-vc
+// import { createVerifiableCredentialJwt } from '@sd-jwt/sd-jwt-vc';
+// Add .js extension to identityService import
+import { issuerDid, issuerKid, getPrivateKey } from '../identity/identityService.js'; 
 
 // Polyfill global crypto if needed
 if (typeof globalThis.crypto === 'undefined') {
@@ -13,54 +16,46 @@ if (typeof globalThis.crypto === 'undefined') {
 
 // --- Configuration ---
 const CONFIG_DIR = path.resolve(process.cwd(), 'config');
-const PRIVATE_KEY_FILE = path.join(CONFIG_DIR, 'issuer.private.jwk');
+// Removed unused PRIVATE_KEY_FILE constant
+// const PRIVATE_KEY_FILE = path.join(CONFIG_DIR, 'issuer.private.jwk');
 const OUTPUT_JWT_FILE = path.join(CONFIG_DIR, 'credential.jwt');
 
-const ISSUER_DID = 'did:web:gov.example';
+// Use issuerDid from identityService, but keep local overrides if needed
+// const ISSUER_DID = 'did:web:gov.example'; 
 // Placeholder Subject DID - Replace with actual DID if needed
 const SUBJECT_DID = 'did:key:z6Mkh...holder'; 
 const VC_TYPE = ["VerifiableCredential", "CitizenshipCredential"];
-const NATIONALITY = "FI";
+const NATIONALITY = "FIN";
 const EXPIRATION_SECONDS = 90 * 24 * 60 * 60; // 90 days
 
-// --- Load Issuer Private Key ---
-async function loadIssuerPrivateKey(keyPath: string): Promise<CryptoKey> {
-    if (!fs.existsSync(keyPath)) {
-        throw new Error(`Issuer private key not found at: ${keyPath}. Run 'npm run create-issuer' first.`);
-    }
-    const privateJwk = JSON.parse(fs.readFileSync(keyPath, 'utf-8')) as JWK;
-
-    if (privateJwk.kty !== 'RSA' || !privateJwk.alg || privateJwk.alg !== 'RS256') {
-         console.warn(`Warning: Issuer private key kty is ${privateJwk.kty} and/or alg is ${privateJwk.alg}. Expecting RSA with RS256 alg.`);
-         // Potentially throw error if strict check is needed
-    }
-
-    // Ensure the key is importable (has necessary components)
-    // TODO: Add more robust validation if needed based on JWK structure
-    const importedKey = await importJWK(privateJwk, privateJwk.alg || 'RS256'); 
-
-    // The jose library handles the key type internally for SignJWT.
-    // The instanceof check fails in Node.js environments where CryptoKey isn't global.
-    /*
-    if (!(importedKey instanceof CryptoKey)) {
-        throw new Error('Imported key is not a CryptoKey, cannot use for signing.');
-    }
-    */
-   // We also need to adjust the return type promise as importJWK can return Uint8Array
-    return importedKey as unknown as CryptoKey; // Cast needed because SignJWT expects CryptoKey for RS256
+// --- Load Issuer Private Key --- (REMOVED UNUSED FUNCTION)
+/*
+async function loadIssuerPrivateKey(keyPath: string): Promise<KeyObject> { 
+    // ... (function body removed)
 }
+*/
 
 // --- Main Logic ---
 async function createJwtVC() {
     console.log("--- Generating JWT Verifiable Credential ---");
 
     try {
-        // 1. Ensure config directory and private key exist
-        if (!fs.existsSync(CONFIG_DIR)) {
-             throw new Error(`Config directory not found at: ${CONFIG_DIR}. Run 'npm run create-issuer' first.`);
+        // 1. Get Issuer DID/KID and Private Key from the identity service
+        console.log("[createJwtVc] Getting issuer details and private key...");
+        // Use the imported values directly
+        const privateKey = await getPrivateKey(); 
+
+        // Check imported values
+        if (!issuerDid || typeof issuerDid !== 'string') { 
+             throw new Error("Could not retrieve a valid issuer DID string from identity service.");
         }
-        const privateKey = await loadIssuerPrivateKey(PRIVATE_KEY_FILE);
-        console.log("Issuer private key loaded.");
+         if (!issuerKid || typeof issuerKid !== 'string') { 
+             throw new Error("Could not retrieve a valid issuer KID string from identity service.");
+         }
+        if (!privateKey) {
+            throw new Error("Could not retrieve private key from identity service.");
+        }
+        console.log(`[createJwtVc] Using Issuer DID: ${issuerDid}, KID: ${issuerKid}`);
 
         // 2. Define Timestamps
         const now = Math.floor(Date.now() / 1000);
@@ -68,10 +63,13 @@ async function createJwtVC() {
 
         // 3. Define JWT Payload
         const payload = {
-            iss: ISSUER_DID,
+            iss: issuerDid, // Use the retrieved issuer DID string
             sub: SUBJECT_DID,
             nbf: now,
             exp: exp,
+            // given_name: "Alice",
+            // family_name: "Smith",
+            // birthdate: "1990-05-15",
             nationality: NATIONALITY,
             vc: {
                 "@context": ["https://www.w3.org/2018/credentials/v1"],
@@ -83,7 +81,6 @@ async function createJwtVC() {
         };
         console.log("JWT Payload defined:");
         console.log(JSON.stringify(payload, null, 2));
-
 
         // 4. Create and Sign JWT
         console.log("\nSigning JWT with RS256...");
