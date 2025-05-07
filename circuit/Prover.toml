@@ -8,8 +8,8 @@
 # base64_decode_offset = 37
 
 # # Expected claim values (public inputs)
-# expected_nationality_storage = ["0x46", "0x49"]
-# expected_nationality_len = 2
+# expected_nationality_storage = [70, 73, 78]
+# expected_nationality_len = 3
 
 x = "1"
 y = "2"
