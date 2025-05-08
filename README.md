@@ -55,7 +55,7 @@ The Noir circuit has a size of 69165 gates, resulting in 14146 ACIR opcodes. The
 
 Since the circuit is rather small, proving times are not an issue. It requires just a few seconds to generate a proof - in the backend.
 
-Unfortunately, we could not get the real circuit to work through the frontend. Generating a Cairo verifier for it resulted in too big a contract - Starknet has a limit of 81290 felts and we were unable to optimize the circuit any further, to get under the limit. Therefore, the website uses a dummy circuit.
+Unfortunately, we could not get the real circuit to work through the frontend. Generating a Cairo verifier for it resulted in too big a contract - Starknet has a limit of 81290 felts and we were unable to optimize the circuit any further, to get under the limit. Therefore, the website uses a dummy circuit. Check the circuit folder's [README](/circuit/README.md) for more details.
 
 ## Installation
 
