@@ -20,7 +20,7 @@ This project was originally started in the [NoirHack hackathon](https://www.noir
 
 ### User flow
 
-1. The user provides a [JWT](https://jwt.io/) JSON disclosing the user's country. The signed JWT is received from a trusted source for example an SSI wallet as JWT VC.
+1. The user provides a [JWT](https://jwt.io/) JSON disclosing the user's country. The signed JWT is received from a trusted source.
 1. User signs up with their Starknet wallet, providing a Starknet address.
 1. A Noir circuit verifies the JWT, extracts the country information, verifies that it's in a list of allowed countries, adds the address and generates a ZK proof.
 1. The user invokes a Cairo registry contract to register the Starknet address with the proof. The registry contract verifies the proof and adds the address in a whitelist.
