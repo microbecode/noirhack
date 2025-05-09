@@ -3,7 +3,11 @@ fn main(x: Field, y: pub Field) {
 }
 
 // //////////////////////////////////////////////////////////////
-// // We have created a circuit that passes with 13,1k gates, but got stuck with Garaga implementation since it required less than 8,1k felts
+// // The Noir circuit has a size of 69165 gates, resulting in 14146 ACIR opcodes. The used prover flavor is Ultra Honk.
+//
+// // Unfortunately, we could not get the real circuit to work through the frontend. Generating a Cairo verifier for it resulted
+// // in too big a contract - Starknet has a limit of 81290 felts and we were unable to optimize the circuit any further,
+// // to get under the limit. Therefore, the we use a dummy circuit.
 // //////////////////////////////////////////////////////////////
 
 // use rsa::rsa::verify_sha256_pkcs1v15;
