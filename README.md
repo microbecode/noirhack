@@ -30,7 +30,7 @@ This project was originally started in the [NoirHack hackathon](https://www.noir
 
 ### Videos
 
-A full project presentation can be found [here](TODO). To have a look at just the website demo, you can check [here](https://www.youtube.com/watch?v=bVqy2nINLAw).
+A full project presentation can be found [here](https://www.youtube.com/watch?v=24VoE2341i4). To have a look at just the website demo, you can check [here](https://www.youtube.com/watch?v=bVqy2nINLAw).
 
 ### Website
 
